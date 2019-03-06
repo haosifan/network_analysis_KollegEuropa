@@ -12,6 +12,44 @@ library(igraphdata)
 library(tidyverse)
 ```
 
+# Affiliationsnetzwerke
+
+Until now, all the networks that we have examined are based on direct ties. That
+is, the social ties connecting the actors in the social network have been confirmed
+through self-report, direct observation, or some other type of data collection that
+tells us how actors are directly connected to one another.
+However, social scientists are often interested in situations where there may be
+the opportunity for social relationships, but these relationships cannot be directly
+observed. However, by virtue of occupying the same social situation, we may infer
+that there is an opportunity or potential for social connections.
+We call this new type of social network an affiliation network. An affiliation
+network is a network where the members are affiliated with one another based on
+co-membership in a group, or co-participation in some type of event. For example,
+students who all belong to the same class can be thought of as being connected to
+one another, although we may not know whether they actually have direct social
+ties.
+
+```{r}
+C1 <- c(1,1,1,0,0,0)
+C2 <- c(0,1,1,1,0,0)
+C3 <- c(0,0,1,1,1,0)
+C4 <- c(0,0,0,0,1,1)
+aff_df <- data.frame(C1,C2,C3,C4)
+row.names(aff_df) <- c("S1","S2","S3","S4","S5","S6")
+
+aff_df
+```
+
+This type of data matrix is called an incidence matrix, and it depicts how n actors
+belong to g groups. In this case we have six students grouped into four classes.
+An incidence matrix is similar to an adjacency matrix, but an adjacency matrix is
+an nxn square matrix where each dimension refers to the actors in the network. An
+incidence matrix, on the other hand, is an nxg rectangular matrix with two different dimensions: actors and groups. For this reason, affiliation networks are also known as two-mode networks.
+
+In affiliation networks, there are always two types of nodes: one type for the actors, and another type for the groups or events to which the actors belong. Ties then connect the actors to those groups. One consequence of this is that there are no direct ties among actors, and there are no direct ties between the groups.
+
+
+
 # Exkurs: Hollywood als Affiliationsnetzwerk
 
 The data file hwd in the UseNetR package contains a larger and more interesting
