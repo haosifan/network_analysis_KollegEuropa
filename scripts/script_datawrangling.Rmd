@@ -64,8 +64,26 @@ rd_clean <- rd_raw %>%
   
 ```
 
-```{r}
+Datensatz so auswählen, dass nur die wirklichen Verbindungen da sind.
 
+```{r}
+rd_ready <- rd_clean %>% 
+  select(eu_land, gastland)
 ```
+
+# Schritt 2: Creating Affiliation Network from Edge List
+
+```{r}
+rd_igraph <- rd_ready %>% graph.data.frame(directed = FALSE)
+
+
+V(rd_igraph)$type <- V(rd_igraph)$name %in% as.data.frame(rd_ready)[,1]
+
+rd_igraph
+```
+
+# Schritt 3: Hinzufügen von zusätzlichen Attributen
+
+
 
 
