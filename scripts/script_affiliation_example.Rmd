@@ -12,6 +12,8 @@ library(igraphdata)
 library(tidyverse)
 ```
 
+# Exkurs: Hollywood als Affiliationsnetzwerk
+
 The data file hwd in the UseNetR package contains a larger and more interesting
 affiliation network that can be explored using these techniques. Hollywood actors
 are a good example of an affiliation network, actors are connected to one another
@@ -21,7 +23,9 @@ The dataset contains the ten most popular movies (as judged by IMBD users) for e
 page. In addition to the movie and actor names, each movie has the year of its release, its IMDB user rating, and the MPAA movie rating (i.e., G, PG, PG-13, and R)
 stored as a node characteristic.
 
-# Daten einlesen
+
+
+## Daten einlesen
 ```{r}
 load("../data/hwd.rda")
 
@@ -34,7 +38,7 @@ V(hwd)$IMDBrating[1:10]
 
 1365 nodes und 1600 ties. Bei 160 Movies und 1205 Actors.
 
-# erster Blick ins Netzwerk (oder Untergruppen davon)
+## erster Blick ins Netzwerk (oder Untergruppen davon)
 
 Vorteil des igraph-packages. Kann "grafische" Informationen direkt im Netzwerk-Objekt selbst speichern.
 
@@ -111,8 +115,96 @@ Hier könnte man jetzt noch einiges mehr an Quatsch machen. Das bringt uns in un
 
 ## Analysis of the Actor and Movie Projections
 
+Following the same procedures as presented in Sect. 9.2.4, the two projections of
+the Hollywood affiliation network can be created and analyzed. This will produce
+an actor network where actors have ties if they starred together in the same movie,
+and a movie network where the movies are connected if they shared the same actors.
+The actor projection will thus have 1,205 nodes, and the movie projection network
+will have 160 nodes.
 
+bipartite.projection funktioniert ohne weiteres Argument, wenn igraph-Objekt ein "type"-Attribut hat. Kann man sonst über Argument ändern.
 
+```{r}
+hwd_pr <- bipartite.projection(hwd)
+hwd_act <- hwd_pr$proj1
+hwd_mov <- hwd_pr$proj2
+hwd_act
+hwd_mov
+```
+
+In this figure, the entire movie network is presented, with node size based on the
+IMDBrating, so that more popular movies have larger nodes (Fig. 9.6).
+
+```{r}
+plot(hwd_mov,
+     vertex.color="red",
+     vertex.shape="circle",
+     vertex.size=(V(hwd_mov)$IMDBrating)-3,
+     vertex.label=NA)
+```
+
+Some basic network descriptives provide more information about the Hollywood
+movie network. Although there are some isolated movies (i.e., movies that did not
+share actors with any of the other movies), most (148) of the movies form a large
+connected component.
+
+```{r}
+graph.density(hwd_mov)
+
+no.clusters(hwd_mov)
+
+clusters(hwd_mov)$csize
+
+table(E(hwd_mov)$weight)
+```
+
+The complete movie network can be filtered to examine the single large connected
+component. In the next figure the edge width has been set to equal the square
+root of weight edge attribute. This results in the ties being thicker for movies that share more actors between them (Fig. 9.7).
+
+```{r}
+hwd_mov2 <- induced.subgraph(hwd_mov,
+                             vids=clusters(hwd_mov)$membership==1)
+```
+
+```{r}
+plot(hwd_mov2,
+     vertex.color="red",
+     edge.width=sqrt(E(hwd_mov)$weight),
+     vertex.shape="circle",
+     vertex.size=(V(hwd_mov2)$IMDBrating)-3,
+     vertex.label=NA)
+```
+
+The previous figure is still large and the relatively high density makes it somewhat
+challenging to interpret any interesting structural features. To help with that,
+we can identify the higher density cores of the graph, and use that to ‘zoom in’ on
+the more interconnected part of the network. (See Chap. 8 for more information.)
+This network is small enough that we can add node labels to help with the interpretation.
+This helps us see that the most tightly connected sections of the network correspond to popular movie series, in particular Harry Potter, Batman, Star Wars,
+and The Hobbit. This makes sense because movies in a series will naturally share
+many or most of the same actors (Fig. 9.8).
+
+```{r}
+table(graph.coreness(hwd_mov2))
+```
+
+```{r}
+hwd_mov3 <- induced.subgraph(hwd_mov2, 
+                           vids=graph.coreness(hwd_mov2)>5)
+hwd_mov3
+unique(V(hwd_mov3)$name)
+```
+
+```{r}
+plot(hwd_mov3,
+     vertex.color="red",
+     vertex.shape="circle",
+     edge.width=sqrt(E(hwd_mov)$weight),
+     vertex.label.cex=0.7,vertex.label.color="darkgreen",
+     vertex.label.dist=0.3,
+     vertex.size=(V(hwd_mov3)$IMDBrating)-3)
+```
 
 
 
