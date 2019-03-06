@@ -1,0 +1,71 @@
+---
+title: "Kolleg Europa - Network Analysis"
+subtitle: "Datenaufbereitung"
+author: "Stefan Haussner"
+date: "6 März 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(igraph)
+library(openxlsx)
+library(janitor)
+```
+
+In diesem Fall muss das Netzwerk aus einer edge list einglesen werden. Das ist gerade bei größeren Netzwerken üblich und spart Platz gegenüber einer incidence matrix.
+
+# Schritt 1: Einlesen der Excel-Datei und Preprocessing für igraph
+
+* Offizielle Position des Besuchers:
+    + Character-Einträge werden umgewandelt in numeric
+    + Prime Minister als 1
+    + Secretary General als 2
+    + alles andere als 3 (und vermutlich später ausgefiltert, weil 3 eigentlich nicht vorgesehen)
+* Offizielle Position des Gastes
+    + Gleiches wie bei Offizieller Position des Besuchers
+    + Vice President ist wie Außenminister
+    + bei den Fällen, wo mehrere getroffen wurden, wird NUR der erste Gastgeber gewertet
+
+
+```{r}
+rd_raw <- openxlsx::read.xlsx("../data/Reisediplomatie Projekt_fin.xlsx", sheet = 1, na.strings = ".", detectDates = TRUE) %>% 
+  as_tibble() %>% 
+  janitor::clean_names()
+  
+
+rd_clean <- rd_raw %>% 
+  rename(OffPos_Gast = offizielle_position_des_besuchers_1_regierungschef_in_2_aussenminister_in,
+         OffPos_Host = offizielle_position_des_der_gesprachspartners_in_im_gastland_1_regierungschef_in_2_aussenminister_in_3_sonstiges_angeben) %>% 
+  mutate(OffPos_Gast = case_when(OffPos_Gast == "Prime Minister" ~ "1",
+                            OffPos_Gast == "Secretary General" ~ "2",
+                            OffPos_Gast == "President" ~ "1",
+                            OffPos_Gast == "Secretary of State" ~ "2", 
+                            OffPos_Gast == "State Minister of Foreign Affairs" ~ "2", 
+                            OffPos_Gast == "1" ~ "1",
+                            OffPos_Gast == "2" ~ "2",
+                            TRUE ~ "3"),
+         OffPos_Host = case_when(OffPos_Host == "Prime Minister" ~ "1",
+                            OffPos_Host == "Secretary General" ~ "2",
+                            OffPos_Host == "President" ~ "1",
+                            OffPos_Host == "Secretary of State" ~ "2", 
+                            OffPos_Host == "State Minister of Foreign Affairs" ~ "2", 
+                            OffPos_Host == "1" ~ "1",
+                            OffPos_Host == "2" ~ "2",
+                            TRUE ~ OffPos_Host),
+         OffPos_Host = stringr::str_sub(OffPos_Host,1,1),
+         OffPos_Host = case_when(OffPos_Host == "1" | OffPos_Host == "2" | OffPos_Host == "3" ~ OffPos_Host,
+                                 OffPos_Host %in% c("U","C","M","G","F") ~ "3",
+                                 TRUE ~ NA_character_)
+         ) %>% 
+  mutate(OffPos_Gast = as.numeric(OffPos_Gast),
+         OffPos_Host = as.numeric(OffPos_Host))
+  
+```
+
+```{r}
+
+```
+
+

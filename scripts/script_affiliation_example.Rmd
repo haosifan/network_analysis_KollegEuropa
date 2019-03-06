@@ -1,5 +1,6 @@
 ---
 title: "Kolleg Europa - Network Analysis"
+subtitle: "Beispiel: Affiliationsnetzwerke"
 author: "Stefan Haussner"
 date: "6 März 2019"
 output: html_document
