@@ -6,12 +6,13 @@ date: "7 März 2019"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, eval = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-
+```
+```{r}
 library(igraph)
 library(threejs)
-
+library(DT)
 ```
 
 Examining both types of nodes in a two-mode network graphic is often the first
@@ -24,7 +25,7 @@ produce two one-mode networks, one of actors and one of the events or affiliatio
 
 The bipartite.projection function returns a list of two igraph network objects. The first network is made up of the direct ties among the first mode, and the second network shows the ties among the second mode.
 
-```{r}
+```{r eval=FALSE}
 rd_projection <- bipartite.projection(rd_igraph)
 rd_projection
 
@@ -33,7 +34,7 @@ rd_hosts <- rd_projection$proj1
 rd_eu28 <- rd_projection$proj2
 ```
 
-```{r}
+```{r eval=FALSE}
 plot.igraph(rd_eu28)
 ```
 
@@ -45,11 +46,11 @@ Das EU28-Netzwerk ist ein Co-occurence Netzwerk. Zwei Länder der EU28 haben dan
 
 Die Länder die am wenigsten gemeinsame Besuchsländer hatten.
 
-```{r}
+```{r eval=FALSE}
 farthest_vertices(rd_eu28)
 ```
 
-## Welche Länder sind im Netzwerk besonders auffallend? (Degree)
+## Welche Länder sind im Netzwerk besonders auffallend?
 
 It makes intuitive sense that a network member who is connected to many other
 members of the network is in a prominent position. For non-directed networks, we
@@ -63,11 +64,14 @@ The simplest measure of centrality by far is based on the notion that a node tha
 has more direct ties is more prominent than nodes with fewer or no ties. Degree
 centrality thus, is simply the degree of each node.
 
-```{r}
-degree(rd_eu28)
+```{r eval=FALSE}
+r_degree <- degree(rd_eu28)/vcount(rd_eu28)
+
+
+data.frame(r_degree)
 
 plot.igraph(rd_eu28,
-            vertex.size = degree(rd_eu28))
+            vertex.size = r_degree*20)
 ```
 
 ### Closeness Centrality
@@ -77,9 +81,9 @@ close each node is to every other node in a network. This leads to the concept o
 closeness centrality, where nodes are more prominent to the extent they are close to
 all other nodes in the network.
 
-```{r message=FALSE}
-round(closeness(rd_eu28),4) %>% data.frame()
-
+```{r eval=FALSE}
+r_closeness <- closeness(rd_eu28)
+data.frame(r_closeness)
 ```
 
 
@@ -90,135 +94,13 @@ nodes in the network, such that a path between the other nodes has to go through
 that node. A node with high betweenness is prominent, then, because that node is in
 a position to observe or control the flow of information in the network.
 
-```{r}
-g_betweenness <- igraph::betweenness(rd_eu28)
-
-g_betweenness %>% round(4)
-
+```{r eval=FALSE}
+r_betweenness <- igraph::betweenness(rd_eu28)
+data.frame(r_betweenness)
 ```
 
+Alle Ergebnisse gesammelt und in sortierbarer Tabelle:
 
-g_betweenness <- igraph::betweenness(rd_eu28, directed = TRUE,
-                        normalized = TRUE)
-
-which.max(g_betweenness)
-
-hist(g_betweenness, breaks = 40)
-
-plot(rd_eu28, 
-     vertex.label = NA,
-     edge.color = 'black',
-     vertex.size = g_betweenness*100+1,
-     edge.arrow.size = 0.05,
-     layout = layout_nicely(rd_eu28))
-
-### Eigenvector centrality
-# High EV-C = Connected to many vertices, but especially to other highly connected vertices
-
-g_ev <- eigen_centrality(rd_eu28, directed = T)$vector
-which.max(g_ev)
-
-###density
-## Proportion of vertices that actually exist, out of all potential existing
-
-edge_density(rd_eu28)
-
-#density within groups
-
-
-## Average Path length
-
-mean_distance(rd_eu28, directed = T)
-
-
-### network randomisation tests
-
-erdos.renyi.game(n = gorder(rd_eu28), p.or.m = edge_density(rd_eu28), type = "gnp")
-
-# Generate 1000 random graphs
-
-g_random <- vector('list',1000)
-
-for(i in 1:1000){
-  
-  g_random[[i]] <- erdos.renyi.game(
-    n = gorder(rd_eu28), 
-    p.or.m = edge_density(rd_eu28), 
-    type = "gnp",
-    directed = T
-  ) 
-}
-
-g_random_apl <- unlist(lapply(g_random, mean_distance, directed = T))
-
-hist(g_random_apl, breaks = 40)
-abline(v = mean_distance(rd_eu28, directed=T), col = "red", lty = 3, lwd=2)
-mean_distance(rd_eu28, directed=T)
-
-### Transitivity
-
-triangles(rd_eu28)
-transitivity(rd_eu28) #possible also for single vertices (type = local))
-
-g_random_trans <- unlist(lapply(g_random, transitivity))
-hist(g_random_trans, breaks = 40)
-abline(v = transitivity(rd_eu28), col = "red", lty = 3, lwd=2)
-
-#cliques
-
-largest.cliques(rd_eu28)
-max_cliques(rd_eu28) # list of cliques
-
-# Calculate the size of each maximal clique
-table(unlist(lapply(max_cliques(rd_eu28), length)))
-
-# Assign largest cliques output to object 'lc'
-g_lc <- largest_cliques(rd_eu28)
-
-g_clique1 <- as.undirected(subgraph(rd_eu28, g_lc[[1]]))
-
-
-plot(g_clique1,
-     vertex.label.color = "black", 
-     vertex.label.cex = 0.9,
-     vertex.size = 0,
-     edge.color = 'gray28',
-     main = "Largest Clique 1",
-     layout = layout.circle(g_clique1)
-)
-
-###assortativity
-
-assortativity_nominal(rd_eu28, V(rd_eu28)$GroupShort, directed=T)
-
-
-# Do individuals with a high degree connect to others with high degree
-assortativity.degree(rd_eu28, directed = T)
-
-g_random_assort <- unlist(lapply(g_random, assortativity, as.factor(V(rd_eu28)$GroupShort)))
-
-hist(g_random_assort)
-abline(v = assortativity(rd_eu28, as.factor(V(rd_eu28)$GroupShort)),
-       col = "red", lty = 3, lwd=2)
-
-### reciprocity
-## only in directed networks
-## proportion of vertices with outgoing, and ingoing
-
-reciprocity(rd_eu28)
-
-#unique sets / community detection
-
-communities <- edge.betweenness.community(rd_eu28, directed = T)
-length(communities)
-
-sizes(communities)
-
-membership(communities)
-
-plot(communities, rd_eu28)
-
-wc <- walktrap.community(rd_eu28)
+```{r results='asis'}
+data_frame(r_degree,r_closeness,r_betweenness) %>% round(digits = 4) %>% knitr::kable()
 ```
-
-
