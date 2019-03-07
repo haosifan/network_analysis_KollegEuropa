@@ -21,10 +21,17 @@ produce two one-mode networks, one of actors and one of the events or affiliatio
 The bipartite.projection function returns a list of two igraph network objects. The first network is made up of the direct ties among the first mode, and the second network shows the ties among the second mode.
 
 ```{r}
-rd_projection <- bipartite.mapping(rd_ready)
-
-V(rd_igraph)$type
-
+rd_projection <- bipartite.projection(rd_igraph)
 rd_projection
+
+
+rd_hosts <- rd_projection$proj1
+rd_eu28 <- rd_projection$proj2
 ```
+
+```{r}
+plot.igraph(rd_eu28)
+```
+
+
 
