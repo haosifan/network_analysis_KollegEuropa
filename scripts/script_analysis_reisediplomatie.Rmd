@@ -1,0 +1,30 @@
+---
+title: "Kolleg Europa - Network Analysis"
+subtitle: "Datenauswertung Reisediplomatie-Netzwerk"
+author: "Stefan Haussner"
+date: "7 März 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Examining both types of nodes in a two-mode network graphic is often the first
+step in studying an affiliation network. However, it is also useful to examine the
+direct connections among the nodes of one type at a time. 
+
+This can be done by extracting and visualizing the one-mode projections
+of the two-mode affiliation network. Every actor by event affiliation network can
+produce two one-mode networks, one of actors and one of the events or affiliations.
+
+The bipartite.projection function returns a list of two igraph network objects. The first network is made up of the direct ties among the first mode, and the second network shows the ties among the second mode.
+
+```{r}
+rd_projection <- bipartite.mapping(rd_ready)
+
+V(rd_igraph)$type
+
+rd_projection
+```
+

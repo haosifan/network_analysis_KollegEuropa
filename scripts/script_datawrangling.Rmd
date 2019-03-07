@@ -89,6 +89,7 @@ rd_igraph <- rd_ready %>% graph.data.frame(directed = FALSE)
 
 V(rd_igraph)$type <- V(rd_igraph)$name %in% as.data.frame(rd_ready)[,1]
 
+
 rd_igraph
 ```
 
@@ -100,14 +101,9 @@ Bisher hinzugefügt:
 
 
 ```{r}
-rd_igraph
-
 E(rd_igraph)$GastPos <- rd_clean$OffPos_Gast
 E(rd_igraph)$GastHost <- rd_clean$GuestHost_rltnshp
 
-plot.igraph(rd_igraph,
-            vertex.color = V(rd_igraph)$type,
-            edge.lty = E(rd_igraph)$GastHost)
 ```
 
 
