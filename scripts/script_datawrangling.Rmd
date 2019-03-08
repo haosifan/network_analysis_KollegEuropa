@@ -106,6 +106,8 @@ rd_igraph <- rd_ready %>% graph.data.frame(directed = FALSE)
 
 
 V(rd_igraph)$type <- V(rd_igraph)$name %in% as.data.frame(rd_ready)[,1]
+  
+plot.igraph(rd_igraph, vertex.color = V(rd_igraph)$type)
 ```
 
 # Schritt 3: Hinzufügen von zusätzlichen Attributen

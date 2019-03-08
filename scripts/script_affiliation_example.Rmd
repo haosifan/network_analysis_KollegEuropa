@@ -15,20 +15,11 @@ library(tidyverse)
 
 # Affiliationsnetzwerke
 
-Until now, all the networks that we have examined are based on direct ties. That
-is, the social ties connecting the actors in the social network have been confirmed
-through self-report, direct observation, or some other type of data collection that
-tells us how actors are directly connected to one another.
-However, social scientists are often interested in situations where there may be
-the opportunity for social relationships, but these relationships cannot be directly
-observed. However, by virtue of occupying the same social situation, we may infer
-that there is an opportunity or potential for social connections.
-We call this new type of social network an affiliation network. An affiliation
-network is a network where the members are affiliated with one another based on
-co-membership in a group, or co-participation in some type of event. For example,
-students who all belong to the same class can be thought of as being connected to
-one another, although we may not know whether they actually have direct social
-ties.
+Alle Netzwerke, die wir bisher untersucht haben, basieren auf direkten Verbindungen. Das heißt, die sozialen Bindungen, die die Akteure im sozialen Netzwerk verbinden, wurden durch Selbstbericht, direkte Beobachtung oder eine andere Art von Datenerhebung bestätigt. Sozialwissenschaftler sind jedoch häufig an Situationen interessiert, in denen diese sozialen Beziehungen nicht direkt beobachtet werden können.
+
+Allerdings können wir davon ausgehen, dass auch Akteure, welche sich in den selben Situationen oder an den selben Orten befinden, die Möglichkeit einer Verbindung aufweisen. Beispielsweise können wir eine Verbindung zwischen Eliten annehmen, die sich in den gleichen Vorständen befinden oder Sportlerinnen in den gleichen Vereinen. 
+
+Wir nennen diesen neuen Typ eines sozialen Netzwerks ein Affiliationsnetzwerk. Ein Affiliationsnetzwerk ist ein Netzwerk, in dem die Mitglieder aufgrund einer Co-Mitgliedschaft in einer Gruppe oder einer Mitbeteiligung an einer Veranstaltung miteinander verbunden sind.
 
 ```{r}
 C1 <- c(1,1,1,0,0,0)
@@ -41,28 +32,16 @@ row.names(aff_df) <- c("S1","S2","S3","S4","S5","S6")
 aff_df
 ```
 
-This type of data matrix is called an incidence matrix, and it depicts how n actors
-belong to g groups. In this case we have six students grouped into four classes.
-An incidence matrix is similar to an adjacency matrix, but an adjacency matrix is
-an nxn square matrix where each dimension refers to the actors in the network. An
-incidence matrix, on the other hand, is an nxg rectangular matrix with two different dimensions: actors and groups. For this reason, affiliation networks are also known as two-mode networks.
+Diese Art von Datenmatrix wird als Inzidenzmatrix bezeichnet und zeigt, wie n Akteure zu g Gruppen gehören. In diesem Fall haben wir bspw. sechs Schüler, die in vier Klassen eingeteilt sind. Eine Inzidenzmatrix ähnelt einer Adjazenzmatrix, aber eine Adjazenzmatrix ist immer eine eine n*n-Quadratmatrix, in der sich jede Dimension auf die Akteure im Netzwerk bezieht. Eine Inzidenzmatrix dagegen ist eine rechteckige Matrix mit zwei verschiedenen Dimensionen: Akteure und Gruppen. Aus diesem Grund werden Affiliationsnetzwerke auch als Two-Mode-Netzwerke, bipartite Netzwerke oder Zugehörigkeitsnetzwerke bezeichnet.
 
-In affiliation networks, there are always two types of nodes: one type for the actors, and another type for the groups or events to which the actors belong. Ties then connect the actors to those groups. One consequence of this is that there are no direct ties among actors, and there are no direct ties between the groups.
-
+In Zugehörigkeitsnetzwerken gibt es immer zwei Arten von Knoten: einen Typ für die Akteure und einen anderen Typ für die Gruppen oder Ereignisse, zu denen die Akteure gehören. Eine Verbindung ergibt sich dann immer zwischen einem Akteur und einem Ereignis. Eine Folge davon ist, dass es keine direkten Verbindungen zwischen den Akteuren und keine direkten Verbindungen zwischen den Gruppen/Ereignissen gibt.
 
 
 # Exkurs: Hollywood als Affiliationsnetzwerk
 
-The data file hwd in the UseNetR package contains a larger and more interesting
-affiliation network that can be explored using these techniques. Hollywood actors
-are a good example of an affiliation network, actors are connected to one another
-through the movies in which they appear together. The hwd dataset is an igraph
-bipartite graph object. The data are originally from IMDB (www.imdb.com).
-The dataset contains the ten most popular movies (as judged by IMBD users) for each year from 1999 to 2014, and the first ten actors listed on each movie’s IMDB
-page. In addition to the movie and actor names, each movie has the year of its release, its IMDB user rating, and the MPAA movie rating (i.e., G, PG, PG-13, and R)
-stored as a node characteristic.
+Wir nutzen in diesem Beispiel den Datensatz hwd.^[Ursprünglich war dieser im UserNetR-Paket zu finden. Da dieses Paket nicht mehr geupdated wird, wurde der Datensatz selber aus dem GitHub-Repo (https://github.com/DougLuke/UserNetR) geladen und hier lokal zur Verfügung gestellt.]
 
-
+Der hwd-Datensatz enthält ein Affiliationsnetzwerk, mit dem die Technik verdeutlicht werden kann. hwd steht mutmaßlich für Hollywood Data: Schauspieler sind durch die Filme miteinander verbunden, in denen sie zusammen auftreten. Das hwd-Dataset ist ein zweigeteiltes Graph-Objekt von igraph. Die Daten stammen ursprünglich von IMDB (www.imdb.com). Der Datensatz enthält die zehn beliebtesten Filme (von IMBD-Nutzern bewertet) für jedes Jahr von 1999 bis 2014 und die ersten zehn Schauspieler, die auf der IMDB-Seite jedes Films aufgeführt sind. Zusätzlich zu den Film- und Schauspielernamen hat jeder Film das Jahr seiner Veröffentlichung, seine IMDB-Benutzerbewertung und die MPAA-Filmbewertung (d. H. G, PG, PG-13 und R) als Knoteneigenschaft gespeichert.
 
 ## Daten einlesen
 ```{r}
@@ -75,25 +54,39 @@ V(hwd)$IMDBrating[1:10]
 
 ```
 
-1365 nodes und 1600 ties. Bei 160 Movies und 1205 Actors.
+In der ersten Zeile der Ausgabe des Datensatzes erkennen wir, dass das Objekt ein IGRAPH-Objekt ist (Paket zur Netzwerkanalyse in R). UN-B zeigt an, dass es ein bipartites Netzwerk ist. UN = Undirected; B = Bipartit. Es gibt insgesamt 1365 Knoten und 1600 Kanten/Verbindungen.
+
+Darunter sind die Verbindungen zu sehen, bspw. Inception und Leonardo DiCaprio. Der Datensatz enthält ebenso verschiedene zusätzliche Attribute, von denen wir uns ebenfalls bspw. die ersten 10 Elemente ausgeben lassen können. Die ersten Elemente des Netzwerks sind offenbar die Filme.
 
 ## erster Blick ins Netzwerk (oder Untergruppen davon)
 
-Vorteil des igraph-packages. Kann "grafische" Informationen direkt im Netzwerk-Objekt selbst speichern.
+Bei bipartiten Igraph-Objekten ist -- außer man benennt das Attribut selbst -- ein type-Attribut vorhanden. Dieses kann die Zustände TRUE oder FALSE annehmen und zeigt an, ob das Element zu der Gruppe der Akteure oder der "Ereignisse" gehört.
+
+```{r}
+V(hwd)$type[1:10]
+V(hwd)$type[155:165]
+
+cbind(V(hwd)$type[155:165], V(hwd)$name[155:165])
+```
+
+Vorteil des igraph-packages. Kann "grafische" Informationen direkt im Netzwerk-Objekt selbst speichern. Hier wird jetzt die Information, wie der Knoten dargestellt werden soll, direkt abhängig vom type mitgegeben. Auch die Farbe wird abhängig vom type festgelegt.
 
 ```{r}
 V(hwd)$shape <- ifelse(V(hwd)$type==TRUE,
                       "square","circle")
 
-V(hwd)$shape[1:10]
 V(hwd)$shape[155:165]
 
 V(hwd)$color <- ifelse(V(hwd)$type==TRUE,
 "red","lightblue")
+
+cbind(V(hwd)$name[155:165], V(hwd)$shape[155:165], V(hwd)$color[155:165])
 ```
 
-For the first plot, we will look at a subset of Martin Scorsese movies that were
-released in the past 15 years. This example also illustrates how to create a subgraph by extracting only the edges that are incident to vertices with certain properties (in this case the name matches one of the three listed Scorsese movies). The key here is the inc special function of the E() edge iterator. The inc function takes a vertex sequence as an argument, and returns the incident edges. In this case, we are extracting all of the edges that are incident to the three Scorsese movies. For more information see the igraph help entry on iterators, which can be found with help(E). The resulting graphic highlights the special role of Leonardo DiCaprio in these Scorsese movies, being the only actor to star in all three.
+Für den ersten Plot werden wir uns einen Teil der Martin Scorsese-Filme ansehen, die in den letzten 15 Jahren veröffentlicht wurden. In diesem Beispiel wird auch veranschaulicht, wie ein Subgraph erstellt wird, indem nur die Kanten extrahiert werden, die Knoten mit bestimmten Eigenschaften aufweisen (in diesem Fall wird der Subgraph auf der Basis des Namens von Scorsese-Filmen gefiltert). Der Schlüssel ist hier die spezielle Funktion E() um die Kanten (Edges) zu filtern. 
+
+Die resultierende Grafik unterstreicht die besondere Rolle von Leonardo DiCaprio in diesen Scorsese-Filmen. Er ist der einzige Schauspieler, der in allen drei Filmen eine der Hauptrollen spielt.
+
 
 ```{r}
 movie_selection <- c("The Wolf of Wall Street", "Gangs of New York","The Departed")
@@ -102,37 +95,25 @@ hwd_leo <- subgraph.edges(hwd, E(hwd)[inc(V(hwd)[name %in% movie_selection])])
 plot(hwd_leo, layout = layout_with_kk)
 ```
 
-What can be learned from the entire Hollywood network? Most network descriptive
-statistics can be applied to affiliation networks, but they often need to be adjusted
-either in how they are constructed or how they are interpreted. For example,
-the overall density of the affiliation network can be easily calculated, but it is not
-very meaningful given how the network data were collected (every actor by definition
-is connected to a movie) and that there can be no ties among either the movie
-nodes or among the actor nodes.
+Was kann man aus dem gesamten Hollywood-Netzwerk lernen? Die meisten deskriptiven Netzwerkstatistiken können auf Affiliationsnetzwerke angewendet werden, aber sie müssen oft angepasst werden, entweder wie sie erstellt werden oder wie sie interpretiert werden. Zum Beispiel kann die Gesamtdichte des Zugehörigkeitsnetzwerks leicht berechnet werden, es ist jedoch nicht sehr aussagekräftig. Jeder Akteur ist per Definition mit einem Film verbunden zwischen den Filmen oder Schauspielern können keine direkten Verbindungen bestehen. Die Dichte des Graphs ist also von vorherein limitiert.
 
 ```{r}
 graph.density(hwd)
 ```
 
-Instead, node degree may be more informative, at least for actors. (In this dataset,
-every movie has the same degree=10). The degree function allows specification
-of which vertices to include, and that is used to select only the actors (for which the node characteristic type is FALSE).
+Stattdessen kann der individuelle Grad von Knoten informativer sein. In diesem Fall gilt das nur für die Schauspieler\*innen, da jeder Film einen Grad von 10 besitzt (erste 10 aufgeführte Schauspieler\*innen). Die degree-Funktion ermöglicht die Angabe, welche Knoten eingeschlossen werden sollen, um nur die Schauspieler\*innen auszuwählen (für die der type FALSE ist).
 
 ```{r}
 table(degree(hwd,v=V(hwd)[type==FALSE]))
 mean(degree(hwd,v=V(hwd)[type==FALSE]))
 ```
 
-This shows that the vast majority of actors only appeared in one movie, but there
-were 15 actors who each starred in five or more movies since 1999. Across all the
-actors, they starred in an average of 1.3 movies. This information can then be used
-to identify the busiest actors of the past decade and a half. They owe a lot of thanks to Harry Potter and Batman!
+Dies zeigt, dass die große Mehrheit der Schauspieler nur in einem Film auftrat, aber es gab 15 Schauspieler, die seit 1999 in fünf oder mehr Filmen mitgespielt haben. Bei allen Schauspielern spielten sie durchschnittlich 1,3 Filme. Diese Informationen können dann verwendet werden, um die am stärksten besetzten Akteure der letzten eineinhalb Jahrzehnte zu identifizieren.
 
 ```{r}
 V(hwd)$deg <- degree(hwd)
 V(hwd)[type==FALSE & deg > 4]$name
 ```
-
 
 ```{r}
 busy_actor <- data.frame(cbind(
@@ -145,8 +126,8 @@ busy_actor %>%
 ```
 
 
-
 ![](https://media.giphy.com/media/26BRzozg4TCBXv6QU/giphy.gif)
+
 
 ![](https://media.giphy.com/media/uN5UYT8VnQ5UI/giphy.gif)
 
@@ -230,7 +211,7 @@ table(graph.coreness(hwd_mov2))
 
 ```{r}
 hwd_mov3 <- induced.subgraph(hwd_mov2, 
-                           vids=graph.coreness(hwd_mov2)>5)
+                           vids=graph.coreness(hwd_mov2)>4)
 hwd_mov3
 unique(V(hwd_mov3)$name)
 ```
