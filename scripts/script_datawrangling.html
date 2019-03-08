@@ -198,46 +198,37 @@ rd_clean &lt;- rd_raw %&gt;%
 <pre><code>## Warning in countrycode(gastland, &quot;country.name.de&quot;, &quot;iso3c&quot;): Some strings were matched more than once, and therefore set to &lt;NA&gt; in the result: Äthiopien / Komoren  (Bilaterales Treffen auf Afrika-Gipfel),COM,ETH; Äthiopien / Somalia (Bilaterales Treffen auf Afrika-Gipfel),ETH,SOM; Schweden (Bilaterales Gespräch mit PM Indiens),IND,SWE</code></pre>
 <p>Datensatz so auswählen, dass nur die wirklichen Verbindungen da sind. Gefiltert werden alle NAs (die müssen vorher geregelt werden), alle Gastländer die gleichzeitig EU-Länder sind (sonst kein bipartites Netz). Wenn auch EU-Länder als Gastländer auftreten sollen, ändert sich die Art des Netzwerks.</p>
 <blockquote>
-<p>Hier sind zwei Entscheidungsfragen drin</p>
+<p>Hier sind zwei Entscheidungsfragen drin, die noch geklärt werden müssen.</p>
 </blockquote>
-<pre class="r"><code>rd_pregraph &lt;- rd_clean %&gt;%
-  filter(!is.na(iso3_host))
+<pre class="r"><code>eu28 &lt;- data.frame(codelist$iso3c,codelist$eu28) %&gt;% 
+  filter(!is.na(codelist.eu28)) %&gt;% 
+  .$codelist.iso3c %&gt;% 
+  as.vector()
+
+rd_pregraph &lt;- rd_clean %&gt;%
+  filter(!is.na(iso3_host)) %&gt;% 
+  filter(!(iso3_host %in% eu28))
   
 
 rd_ready &lt;- rd_pregraph %&gt;% 
-  select(eu_land, gastland)</code></pre>
+  select(iso3_eu, iso3_host)</code></pre>
 </div>
 <div id="schritt-2-creating-affiliation-network-from-edge-list" class="section level1">
 <h1>Schritt 2: Creating Affiliation Network from Edge List</h1>
 <pre class="r"><code>rd_igraph &lt;- rd_ready %&gt;% graph.data.frame(directed = FALSE)
 
 
-V(rd_igraph)$type &lt;- V(rd_igraph)$name %in% as.data.frame(rd_ready)[,1]
-
-
-rd_igraph</code></pre>
-<pre><code>## IGRAPH c434636 UN-B 72 101 -- 
-## + attr: name (v/c), type (v/l)
-## + edges from c434636 (vertex names):
-##  [1] Bulgarien  --Türkei        Bulgarien  --Liechtenstein
-##  [3] Dänemark   --Island        Dänemark   --Russland     
-##  [5] Dänemark   --Ukraine       Dänemark   --Georgien     
-##  [7] Dänemark   --Algerien      Dänemark   --Indien       
-##  [9] Deutschland--Frankreich    Bulgarien  --Deutschland  
-## [11] Deutschland--Belgien       Deutschland--Frankreich   
-## [13] Deutschland--Polen         Deutschland--USA          
-## [15] Deutschland--Italien       Bulgarien  --Deutschland  
-## + ... omitted several edges</code></pre>
+V(rd_igraph)$type &lt;- V(rd_igraph)$name %in% as.data.frame(rd_ready)[,1]</code></pre>
 </div>
 <div id="schritt-3-hinzufugen-von-zusatzlichen-attributen" class="section level1">
 <h1>Schritt 3: Hinzufügen von zusätzlichen Attributen</h1>
 <p>Bisher hinzugefügt: * offizielle Position des Gastes * Gast-Gastgeber-Verhältnis</p>
-<pre class="r"><code>E(rd_igraph)$GastPos &lt;- rd_clean$OffPos_Gast</code></pre>
-<pre><code>## Warning in eattrs[[name]][index] &lt;- value: Anzahl der zu ersetzenden
-## Elemente ist kein Vielfaches der Ersetzungslänge</code></pre>
-<pre class="r"><code>E(rd_igraph)$GastHost &lt;- rd_clean$GuestHost_rltnshp</code></pre>
-<pre><code>## Warning in eattrs[[name]][index] &lt;- value: Anzahl der zu ersetzenden
-## Elemente ist kein Vielfaches der Ersetzungslänge</code></pre>
+<pre class="r"><code>E(rd_igraph)$GastPos &lt;- rd_pregraph$OffPos_Gast
+E(rd_igraph)$GastHost &lt;- rd_pregraph$GuestHost_rltnshp</code></pre>
+</div>
+<div id="speichern-des-workspace-von-produzierten-datensatzen" class="section level1">
+<h1>Speichern des Workspace von produzierten Datensätzen:</h1>
+<pre class="r"><code>save(list = ls(), file = &quot;../data/data_preprocessed.Rdata&quot;)</code></pre>
 </div>
 
 

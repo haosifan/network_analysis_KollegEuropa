@@ -6,13 +6,14 @@ date: "6 März 2019"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, cache=TRUE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(igraph)
 library(openxlsx)
 library(janitor)
 library(countrycode)
+library(dplyr)
 ```
 
 In diesem Fall muss das Netzwerk aus einer edge list einglesen werden. Das ist gerade bei größeren Netzwerken üblich und spart Platz gegenüber einer incidence matrix.
@@ -121,4 +122,9 @@ E(rd_igraph)$GastHost <- rd_pregraph$GuestHost_rltnshp
 ```
 
 
+# Speichern des Workspace von produzierten Datensätzen:
+
+```{r}
+save(list = ls(), file = "../data/data_preprocessed.Rdata")
+```
 

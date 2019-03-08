@@ -6,14 +6,17 @@ date: "7 März 2019"
 output: html_document
 ---
 
-```{r setup, include=FALSE, eval = FALSE}
+```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-```
-```{r}
 library(igraph)
 library(threejs)
 library(DT)
 ```
+
+```{r}
+load("C:/OwnCloud/SH/Workshops_Talks/KollegEuropa_Studienstiftung_Netzwerkanalyse_Prag/R/network_analysis_KollegEuropa/data/data_preprocessed.Rdata")
+```
+
 
 Examining both types of nodes in a two-mode network graphic is often the first
 step in studying an affiliation network. However, it is also useful to examine the
@@ -25,7 +28,7 @@ produce two one-mode networks, one of actors and one of the events or affiliatio
 
 The bipartite.projection function returns a list of two igraph network objects. The first network is made up of the direct ties among the first mode, and the second network shows the ties among the second mode.
 
-```{r eval=FALSE}
+```{r}
 rd_projection <- bipartite.projection(rd_igraph)
 rd_projection
 
@@ -34,7 +37,7 @@ rd_hosts <- rd_projection$proj1
 rd_eu28 <- rd_projection$proj2
 ```
 
-```{r eval=FALSE}
+```{r}
 plot.igraph(rd_eu28)
 ```
 
@@ -46,7 +49,7 @@ Das EU28-Netzwerk ist ein Co-occurence Netzwerk. Zwei Länder der EU28 haben dan
 
 Die Länder die am wenigsten gemeinsame Besuchsländer hatten.
 
-```{r eval=FALSE}
+```{r}
 farthest_vertices(rd_eu28)
 ```
 
@@ -64,7 +67,7 @@ The simplest measure of centrality by far is based on the notion that a node tha
 has more direct ties is more prominent than nodes with fewer or no ties. Degree
 centrality thus, is simply the degree of each node.
 
-```{r eval=FALSE}
+```{r}
 r_degree <- degree(rd_eu28)/vcount(rd_eu28)
 
 
@@ -81,7 +84,7 @@ close each node is to every other node in a network. This leads to the concept o
 closeness centrality, where nodes are more prominent to the extent they are close to
 all other nodes in the network.
 
-```{r eval=FALSE}
+```{r}
 r_closeness <- closeness(rd_eu28)
 data.frame(r_closeness)
 ```
@@ -94,13 +97,15 @@ nodes in the network, such that a path between the other nodes has to go through
 that node. A node with high betweenness is prominent, then, because that node is in
 a position to observe or control the flow of information in the network.
 
-```{r eval=FALSE}
+```{r}
 r_betweenness <- igraph::betweenness(rd_eu28)
 data.frame(r_betweenness)
 ```
 
 Alle Ergebnisse gesammelt und in sortierbarer Tabelle:
 
-```{r results='asis'}
-data_frame(r_degree,r_closeness,r_betweenness) %>% round(digits = 4) %>% knitr::kable()
+```{r}
+data.frame(r_degree,r_closeness,r_betweenness) %>% 
+  round(digits = 4) %>% 
+  datatable(iris,options = list(pageLength = 20))
 ```
