@@ -21,6 +21,11 @@ load("D:/KollegEuropa_Studienstiftung_Netzwerkanalyse_Prag/R/network_analysis_Ko
 ```
 
 
+# Analyse des Two-Mode-Netzwerks
+
+
+# Analyse der One-Mode-Projektionen
+
 Die gemeinsame Untersuchung beider Knotentypen in einer Two-Mode-Netzwerkgrafik ist häufig der erste Schritt beim Studium eines Zugehörigkeitsnetzwerks. Es ist jedoch auch sinnvoll die One-Mode-Projektionen des Netzwerks zu untersuchen.
 Die Funktion ```bipartite.projection``` gibt eine Liste von zwei igraph-Netzwerkobjekten zurück. Das erste Netzwerk besteht aus direkten Verbindungen zwischen dem ersten Modus und das zweite Netzwerk zeigt die Verbindungen zwischen dem zweiten Modus.
 
@@ -105,7 +110,7 @@ data.frame(r_degree,r_closeness,r_betweenness) %>%
 ```
 
 
-## network  descriptives
+## network descriptives
 
 ```{r}
 edge_density(rd_eu28)
@@ -137,9 +142,7 @@ largest_cliques(rd_eu28)
 
 ```{r}
 vcol <- rep("grey80", vcount(rd_eu28))
-
 vcol[unlist(largest_cliques(rd_eu28))] <- "gold"
-
 plot(as.undirected(rd_eu28), vertex.label=V(rd_eu28)$name, vertex.color=vcol)
 ```
 

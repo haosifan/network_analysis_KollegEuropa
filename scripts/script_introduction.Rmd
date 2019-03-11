@@ -1,0 +1,133 @@
+---
+title: "Kolleg Europa - Network Analysis"
+author: "Einführung in die Netzwerkanalyse"
+date: "11 März 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(igraph)
+```
+
+Zur Veranschaulichung nutzen wir das ```Forest Gump Network```: Each edge of the network indicates that those two characters were in at least one scene of the movie together. Therefore this network is undirected.
+
+```{r}
+gump_raw <- read_csv("../data/gump.csv")
+head(gump_raw, 15)
+gump_net <- gump_raw %>% as.matrix() %>% igraph::graph_from_edgelist(directed = FALSE)
+gump_net
+```
+
+```{r}
+plot.igraph(gump_net, layout = layout_nicely, vertex.label.cex=0.7, vertex.size = 0)
+```
+
+
+# Netzwerkdaten
+
+Netzwerkdaten können in unterschiedlichen Formaten vorliegen. Wir haben gerade die -- besonders für große Netzwerke -- geläufige Form der ```edge list``` gesehen, die sehr platzsparend Netzwerkdaten speichern kann.
+```{r}
+get.edgelist(gump_net) %>% head(15)
+```
+
+Häufig kommen Netzwerkdaten aber auch in Matrixform vor. Diese sogenannte ```adjacency-matrix``` ist quadratisch, beinhaltet also genauso viele Zeilen wie Spalten. Jede Zelle gibt an ob eine Verbindung zwischen Zeile X und Spalte Y besteht.
+
+```{r}
+gump_net %>% igraph::get.adjacency(sparse = FALSE) %>% data.frame() %>% .[1:5,1:5]
+```
+
+Meistens existieren noch weitere Attribute, die man den Knoten hinzufügen möchte. Dies können bspw. verschiedene Arten von Knoten im Netzwerk sein (Geschlecht, Parteizugehörigkeit, ethnische Zugehörigkeit, ...) oder aber auch direkte Anweisungen für die Grafik. Das sind dann z.B. Attribute wie Farbe des Knotens oder ob der Knoten als Kreis oder Quadrat dargestellt werden soll. Auch der Knotenname ist meist ein eigenes Attribut. Meistens basiert eine vernünftige Netzwerkvisualisierung auf der Nutzung dieser Attribute. Dabei können sowohl die Knoten als auch die Verbindungen zwischen ihnen (edges) eigene Attribute besitzen.
+
+```{r}
+list.vertex.attributes(gump_net)
+V(gump_net)$degree <- degree(gump_net, mode = "all")
+list.vertex.attributes(gump_net)
+
+plot.igraph(gump_net, vertex.size = V(gump_net)$degree)
+```
+
+Netzwerke können aufgrund von diesen Attributen auch weiter unterteilt oder eingeschränkt werden.
+
+```{r}
+table(V(gump_net)$degree)
+gump_net1 <- induced.subgraph(gump_net, vids=V(gump_net)$degree > 6)
+plot.igraph(gump_net1, vertex.size = V(gump_net1)$degree/2)
+```
+
+
+# Analyse einzelner Knoten
+
+## degree
+
+```{r}
+degree(gump_net)
+```
+
+
+## betweenness
+
+## eigenvector centrality
+
+## closeness centrality
+
+## pagerank centrality
+
+
+# Subgroups and communities
+
+
+## Cliquen
+
+
+```{r}
+cliques(gump_net) # list of cliques       
+
+sapply(cliques(gump_net), length) # clique sizes
+
+largest_cliques(gump_net)
+```
+
+```{r}
+vcol <- rep("grey80", vcount(gump_net))
+vcol[unlist(largest_cliques(gump_net))] <- "gold"
+plot(gump_net, vertex.label=V(gump_net)$name, vertex.color=vcol)
+```
+
+## Community Detection
+```{r}
+ceb <- cluster_edge_betweenness(gump_net1) 
+dendPlot(ceb, mode="hclust")
+plot(ceb,gump_net1) 
+
+cfg <- cluster_fast_greedy(gump_net1)
+dendPlot(cfg, mode="hclust")
+plot(cfg,gump_net1) 
+```
+
+
+# Analyse des gesamten Netzwerks
+
+## edge density
+
+```{r}
+edge_density(gump_net)
+```
+
+## diameter
+
+```{r}
+diameter(gump_net, directed = FALSE)
+farthest_vertices(gump_net)
+```
+
+## average path length
+
+```{r}
+mean_distance(gump_net, directed = FALSE)
+```
+
+## network randomizations
+
+
