@@ -9,7 +9,6 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(igraph)
-library(igraphdata)
 library(tidyverse)
 ```
 
@@ -126,23 +125,15 @@ busy_actor %>%
 ```
 
 
-![](https://media.giphy.com/media/26BRzozg4TCBXv6QU/giphy.gif)
+![](https://media.giphy.com/media/26BRzozg4TCBXv6QU/giphy.gif) ![](https://media.giphy.com/media/uN5UYT8VnQ5UI/giphy.gif)
 
-
-![](https://media.giphy.com/media/uN5UYT8VnQ5UI/giphy.gif)
-
-Hier könnte man jetzt noch einiges mehr an Quatsch machen. Das bringt uns in unserem Beispiel aber nicht weiter und nutzt eigentlich auch nicht wirklich die Möglichkeiten eines bipartiten Netzwerks.
+Hier könnte man jetzt noch einiges mehr machen. Das bringt uns in unserem Beispiel aber nicht weiter und nutzt eigentlich auch nicht wirklich die Möglichkeiten eines bipartiten Netzwerks. Bisher könnten man diese Erkenntnisse ja auch quasi mit deskriptiver Statistik ermitteln. Damit man auch wieder die allgemeinen statistischen Berechnungen für soziale Netzwerkanalyse anwenden kann, muss das bipartite Netzwerk in zwei Projektionen zerlegt werden.
 
 ## Analysis of the Actor and Movie Projections
 
-Following the same procedures as presented in Sect. 9.2.4, the two projections of
-the Hollywood affiliation network can be created and analyzed. This will produce
-an actor network where actors have ties if they starred together in the same movie,
-and a movie network where the movies are connected if they shared the same actors.
-The actor projection will thus have 1,205 nodes, and the movie projection network
-will have 160 nodes.
+Projektionen des bipartiten Netzwerks nennt man die zwei Teilnetzwerke, die aus dem bipartiten Netz entstehen. Auf diese Weise entsteht ein Schauspielernetzwerk, in dem Schauspieler miteinander verbunden sind, wenn sie zusammen in demselben Film mitgespielt haben, und ein Filmnetzwerk, in dem die Filme miteinander verbunden sind, wenn sie dieselben Schauspieler teilen. Die Akteurprojektion hat somit 1.205 Knoten und das Filmprojektionsnetzwerk 160 Knoten.
 
-bipartite.projection funktioniert ohne weiteres Argument, wenn igraph-Objekt ein "type"-Attribut hat. Kann man sonst über Argument ändern.
+Im ```igraph-Paket``` geht das ohne großen Aufwand durch die Funktion ```bipartite.projection()```. Wenn das igraph-Objekt das type-Attribut hat, geht das ohne weitere Argumente. Ist das bipartite Netzwerk durch etwas anderes als ```type``` strukturiert, lässt sich das auch über ein zusätzliches Argument mitgeben.
 
 ```{r}
 hwd_pr <- bipartite.projection(hwd)
@@ -152,8 +143,7 @@ hwd_act
 hwd_mov
 ```
 
-In this figure, the entire movie network is presented, with node size based on the
-IMDBrating, so that more popular movies have larger nodes (Fig. 9.6).
+In dieser Abbildung wird das gesamte Filmnetzwerk dargestellt, wobei die Knotengröße auf der IMDB-Bewertung basiert, sodass populärere Filme größere Knoten haben.
 
 ```{r}
 plot(hwd_mov,
@@ -163,10 +153,7 @@ plot(hwd_mov,
      vertex.label=NA)
 ```
 
-Some basic network descriptives provide more information about the Hollywood
-movie network. Although there are some isolated movies (i.e., movies that did not
-share actors with any of the other movies), most (148) of the movies form a large
-connected component.
+Einige deskriptive Netzwerkcharakteristika bieten weitere Informationen zum Hollywood-Filmenetzwerk. Obwohl es einige isolierte Filme gibt (d.h. Filme, die keine Schauspieler mit anderen Filmen teilen), bilden die meisten (148) der Filme, eine große verbundene Komponente.
 
 ```{r}
 graph.density(hwd_mov)
@@ -178,16 +165,12 @@ clusters(hwd_mov)$csize
 table(E(hwd_mov)$weight)
 ```
 
-The complete movie network can be filtered to examine the single large connected
-component. In the next figure the edge width has been set to equal the square
-root of weight edge attribute. This results in the ties being thicker for movies that share more actors between them (Fig. 9.7).
+Das gesamte Filmenetzwerk kann gefiltert werden, um die einzelnen großen verbundenen Komponenten zu untersuchen. In der nächsten Abbildung wurde die Kantenbreite so eingestellt, dass sie der Quadratwurzel des Gewichtskantenattributs entspricht. Dies führt dazu, dass die Beziehungen zwischen Filmen, in denen mehr Schauspieler vorhanden sind, stärker sind.
 
 ```{r}
 hwd_mov2 <- induced.subgraph(hwd_mov,
                              vids=clusters(hwd_mov)$membership==1)
-```
 
-```{r}
 plot(hwd_mov2,
      vertex.color="red",
      edge.width=sqrt(E(hwd_mov)$weight),
@@ -196,14 +179,8 @@ plot(hwd_mov2,
      vertex.label=NA)
 ```
 
-The previous figure is still large and the relatively high density makes it somewhat
-challenging to interpret any interesting structural features. To help with that,
-we can identify the higher density cores of the graph, and use that to ‘zoom in’ on
-the more interconnected part of the network. (See Chap. 8 for more information.)
-This network is small enough that we can add node labels to help with the interpretation.
-This helps us see that the most tightly connected sections of the network correspond to popular movie series, in particular Harry Potter, Batman, Star Wars,
-and The Hobbit. This makes sense because movies in a series will naturally share
-many or most of the same actors (Fig. 9.8).
+Die vorherige Abbildung ist immer noch groß und die relativ hohe Dichte macht die Interpretation interessanter Strukturmerkmale etwas schwierig. Um dies zu erleichtern, können wir die Cluster mit höherer Dichte des Netzwerks identifizieren und diese verwenden, um den stärker miteinander verbundenen Teil des Netzwerks zu vergrößern.
+
 
 ```{r}
 table(graph.coreness(hwd_mov2))
@@ -226,5 +203,5 @@ plot(hwd_mov3,
      vertex.size=(V(hwd_mov3)$IMDBrating)-3)
 ```
 
-
+Dieses Netzwerk ist dann klein genug, dass wir Knotenbezeichnungen hinzufügen können, um die Interpretation zu erleichtern. Dies hilft uns zu erkennen, dass die am engsten verbundenen Bereiche des Netzwerks mit populären Filmserien korrespondieren, insbesondere Harry Potter, Batman, Star Wars und The Hobbit. Dies ist logisch, da Filme einer Serie natürlich viele oder die meisten der gleichen Schauspieler teilen.
 

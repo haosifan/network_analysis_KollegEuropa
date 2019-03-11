@@ -11,22 +11,18 @@ knitr::opts_chunk$set(echo = TRUE)
 library(igraph)
 library(threejs)
 library(DT)
+library(tidyverse)
+library(reshape2)
 ```
 
 ```{r}
-load("C:/OwnCloud/SH/Workshops_Talks/KollegEuropa_Studienstiftung_Netzwerkanalyse_Prag/R/network_analysis_KollegEuropa/data/data_preprocessed.Rdata")
+#load("C:/OwnCloud/SH/Workshops_Talks/KollegEuropa_Studienstiftung_Netzwerkanalyse_Prag/R/network_analysis_KollegEuropa/data/data_preprocessed.Rdata")
+load("D:/KollegEuropa_Studienstiftung_Netzwerkanalyse_Prag/R/network_analysis_KollegEuropa/data/data_preprocessed.Rdata")
 ```
 
 
-Examining both types of nodes in a two-mode network graphic is often the first
-step in studying an affiliation network. However, it is also useful to examine the
-direct connections among the nodes of one type at a time. 
-
-This can be done by extracting and visualizing the one-mode projections
-of the two-mode affiliation network. Every actor by event affiliation network can
-produce two one-mode networks, one of actors and one of the events or affiliations.
-
-The bipartite.projection function returns a list of two igraph network objects. The first network is made up of the direct ties among the first mode, and the second network shows the ties among the second mode.
+Die gemeinsame Untersuchung beider Knotentypen in einer Two-Mode-Netzwerkgrafik ist häufig der erste Schritt beim Studium eines Zugehörigkeitsnetzwerks. Es ist jedoch auch sinnvoll die One-Mode-Projektionen des Netzwerks zu untersuchen.
+Die Funktion ```bipartite.projection``` gibt eine Liste von zwei igraph-Netzwerkobjekten zurück. Das erste Netzwerk besteht aus direkten Verbindungen zwischen dem ersten Modus und das zweite Netzwerk zeigt die Verbindungen zwischen dem zweiten Modus.
 
 ```{r}
 rd_projection <- bipartite.projection(rd_igraph)
@@ -39,63 +35,56 @@ rd_eu28 <- rd_projection$proj2
 
 ```{r}
 plot.igraph(rd_eu28)
+plot.igraph(rd_hosts)
 ```
 
 # Analyse des EU28-Netzwerks
 
-Das EU28-Netzwerk ist ein Co-occurence Netzwerk. Zwei Länder der EU28 haben dann eine Verbindung, wenn sie das gleiche Gastland besucht haben. Das Netzwerk ist ein ungerichtetes Netzwerk.
+Das EU28-Netzwerk ist ein Co-occurence-Netzwerk (One-Mode-Projektion des ursprünglichen Reisediplomatienetzwerks). Zwei Länder der EU28 haben dann eine Verbindung, wenn sie das gleiche Gastland besucht haben. Das Netzwerk ist ein ungerichtetes Netzwerk.
 
-## Paths
+## Distances and paths
 
-Die Länder die am wenigsten gemeinsame Besuchsländer hatten.
+Die Länder die am wenigsten gemeinsame Besuchsländer hatten, lassen sich über den längsten Pfad im Netzwerk ermitteln. Das ist sozusagen der weiteste Abstand zwischen zwei Knoten, wenn jemand über die Kanten von einem zum anderen Knoten laufen wollen würde.
 
 ```{r}
 farthest_vertices(rd_eu28)
+
+mean_distance(net, directed=F)
 ```
 
 ## Welche Länder sind im Netzwerk besonders auffallend?
 
-It makes intuitive sense that a network member who is connected to many other
-members of the network is in a prominent position. For non-directed networks, we
-will say that this type of actor has high centrality, or that it is in a central position.
-However, there are a number of ways of operationalizing this type of prominence.
-In fact, there are dozens of centrality statistics available to the network analyst.
+Es ist intuitiv sinnvoll, dass ein Netzwerkmitglied, das mit vielen anderen Mitgliedern des Netzwerks verbunden ist, eine herausragende Position einnimmt. Für nicht gerichtete Netzwerke sprechen wir von Akteuren mit einer hohen Zentralität.
+Es gibt jedoch eine Reihe von Möglichkeiten, diese Art der Zentralität zu operationalisieren. Tatsächlich stehen in der Sozialen Netzwerkanalyse Dutzende von Zentralitätsstatistiken zur Verfügung.
 
 ### Degree centrality
 
-The simplest measure of centrality by far is based on the notion that a node that
-has more direct ties is more prominent than nodes with fewer or no ties. Degree
-centrality thus, is simply the degree of each node.
+Das einfachste Maß für die Zentralität basiert auf der Annahme, dass ein Knoten mit mehr direkten Bindungen stärker hervortritt als Knoten mit weniger oder keinen Bindungen. Diese Form nennt man degree centrality und entspricht einfach der Anzahl an Kanten. Alternativ lässt sich die Grad-Zentralität über einen Anteil der Verbindungen des Knotens an den gesamten Verbindungen ausdrücken.
 
 ```{r}
-r_degree <- degree(rd_eu28)/vcount(rd_eu28)
-
+degree(rd_eu28)
+r_degree <- degree(rd_eu28)
 
 data.frame(r_degree)
 
 plot.igraph(rd_eu28,
-            vertex.size = r_degree*20)
+            vertex.size = r_degree*100)
+
+hist(r_degree, breaks=1:vcount(rd_eu28)-1, main="Histogram of node degree")
 ```
 
 ### Closeness Centrality
 
-Instead of examining only the direct connections of the nodes, we can focus on how
-close each node is to every other node in a network. This leads to the concept of
-closeness centrality, where nodes are more prominent to the extent they are close to
-all other nodes in the network.
+Anstatt nur die direkten Verbindungen der Knoten zu untersuchen, können wir uns darauf konzentrieren, wie nahe sich jeder Knoten an jedem anderen Knoten in einem Netzwerk befindet. Dies führt zu dem Konzept der Closeness-Zentralität, wobei Knoten in dem Ausmaß, in dem sie sich in der Nähe aller anderen Knoten im Netzwerk befinden, eine größere Rolle spielen.
 
 ```{r}
 r_closeness <- closeness(rd_eu28)
 data.frame(r_closeness)
 ```
 
-
-
 ### Betweenness
-Welche Knoten müssen am häufigsten durchlaufen werden. Betweenness centrality measures the extent that a node sits ‘between’ pairs of other
-nodes in the network, such that a path between the other nodes has to go through
-that node. A node with high betweenness is prominent, then, because that node is in
-a position to observe or control the flow of information in the network.
+
+Welche Knoten müssen am häufigsten durchlaufen werden? Die Betweenness-Zentralität misst das Ausmaß, in dem ein Knoten zwischen Paaren anderer Knoten im Netzwerk sitzt, so dass ein Pfad zwischen den anderen Knoten diesen Knoten durchlaufen muss. Ein Knoten mit einem hohen Wert ist daher interessant, weil dieser Knoten in der Lage ist, den Informationsfluss im Netzwerk zu beobachten oder zu steuern.
 
 ```{r}
 r_betweenness <- igraph::betweenness(rd_eu28)
@@ -109,3 +98,60 @@ data.frame(r_degree,r_closeness,r_betweenness) %>%
   round(digits = 4) %>% 
   datatable(iris,options = list(pageLength = 20))
 ```
+
+```{r}
+data.frame(r_degree,r_closeness,r_betweenness) %>%
+  cor()
+```
+
+
+## network  descriptives
+
+```{r}
+edge_density(rd_eu28)
+```
+
+ Transitivity
+
+    global - ratio of triangles (direction disregarded) to connected triples.
+    local - ratio of triangles to connected triples each vertex is part of.
+
+
+```{r}
+transitivity(rd_eu28, type="global")
+transitivity(rd_eu28, type="local")
+```
+
+
+
+## Subgroups and communities
+
+Cliques
+```{r}
+#cliques(rd_eu28) # list of cliques       
+
+sapply(cliques(rd_eu28), length) # clique sizes
+
+largest_cliques(rd_eu28)
+```
+
+```{r}
+vcol <- rep("grey80", vcount(rd_eu28))
+
+vcol[unlist(largest_cliques(rd_eu28))] <- "gold"
+
+plot(as.undirected(rd_eu28), vertex.label=V(rd_eu28)$name, vertex.color=vcol)
+```
+
+Community detection
+```{r}
+ceb <- cluster_edge_betweenness(rd_eu28) 
+
+dendPlot(ceb, mode="hclust")
+
+plot(ceb,rd_eu28) 
+```
+
+
+
+
