@@ -28,6 +28,7 @@ plot.igraph(gump_net, layout = layout_nicely, vertex.label.cex=0.7, vertex.size 
 # Netzwerkdaten
 
 Netzwerkdaten können in unterschiedlichen Formaten vorliegen. Wir haben gerade die -- besonders für große Netzwerke -- geläufige Form der ```edge list``` gesehen, die sehr platzsparend Netzwerkdaten speichern kann.
+
 ```{r}
 get.edgelist(gump_net) %>% head(15)
 ```
@@ -45,7 +46,7 @@ list.vertex.attributes(gump_net)
 V(gump_net)$degree <- degree(gump_net, mode = "all")
 list.vertex.attributes(gump_net)
 
-plot.igraph(gump_net, vertex.size = V(gump_net)$degree/2, layout = layout_nicely, vertex.label.cex=0.7)
+plot.igraph(gump_net, vertex.size = V(gump_net)$degree/2, layout = layout_nicely, vertex.label.cex=0.5)
 ```
 
 Netzwerke können aufgrund von diesen Attributen auch weiter unterteilt oder eingeschränkt werden. Hier werden nur die Knoten ausgewählt, die ein ```degree``` von über 5 aufweisen und dem neuen Objekt gump_net1 zugewiesen.
@@ -59,7 +60,24 @@ plot.igraph(gump_net1, vertex.size = V(gump_net1)$degree/2)
 
 # Analyse einzelner Knoten
 
+Bei Netzwerken kann man zwischen der Analyse einzelner Individuen im Netzwerk und der Beschreibung der gesamten Netzwerkstruktur unterscheiden. Der Übersichtlichkeit wegen, werden im Folgenden häufig nur die Werte der ersten 6 Knoten im Netzwerk ausgegeben.
+
+
+```{r}
+V(gump_net)$name[1:6]
+
+vcol <- rep("grey80", vcount(gump_net))
+vcol[1:6] <- "gold"
+vlabel <- V(gump_net)$name
+vlabel[7:length(vlabel)] <- ""
+
+plot(gump_net, vertex.label=vlabel, vertex.color=vcol, vertex.label.cex = 0.8, layout = layout_nicely, vertex.size = 10)
+```
+
+
 ## degree
+
+Der ```Grad``` eines Netzwerks ist ein einfaches Zentralitätsmaß, das zählt, wie viele Nachbarn ein Knoten hat. Wenn das Netzwerk gerichtet ist, haben wir zwei Versionen des Maßes: Der ```in-degree``` ist die Anzahl der eingehenden Verbindungen während der ```out-degree``` die Anzahl der ausgehenden Kanten ist. In einem ungerichteten Netzwerk ist der in- und der out-degree identisch.
 
 ```{r}
 degree(gump_net) %>% head()
@@ -68,18 +86,70 @@ which.max(degree(gump_net))
 
 ## betweenness
 
+Die ```Betweenness``` misst das Ausmaß, in dem ein Knoten auf Pfaden zwischen anderen Knoten liegt. Knoten mit hoher Betweenness können einen erheblichen Einfluss innerhalb eines Netzwerks haben, da sie die gegenseitige Übermittlung von Informationen beeinflussen. Sie sind auch diejenigen, deren Entfernung aus dem Netzwerk die Kommunikation zwischen anderen Knoten am meisten stört.
+
+```{r}
+betweenness(gump_net) %>% head()
+```
+
+
 ## eigenvector centrality
+
+Die ```Eigenvektorzentralität``` ist quasi die Erweiterung der degree-Zentralität. Bei der degree-Zentralität wird für jede Verbindung ein Punkt vergeben. Es sind jedoch nicht alle Knoten gleichwertig: Einige sind relevanter als andere und vernünftigerweise zählen Verbindungen zu wichtigen Knoten mehr. Daher ist die These der Eigenvektorzentralität:
+
+> Ein Knoten ist wichtig, wenn er mit anderen wichtigen Knoten verbunden ist.
+
+Die Eigenvektor-Zentralität unterscheidet sich von der Grad-Zentralität: Ein Knoten, der viele Verbindungen hat, muss nicht notwendigerweise eine hohe Eigenvektor-Zentralität haben (es könnte sein, dass alle Kontakte nur zu sehr wenigen anderen Knoten Kontakte haben). Darüber hinaus ist ein Knoten mit hoher Eigenvektor-Zentralität nicht notwendigerweise stark verknüpft (der Knoten kann wenige, aber wichtige Kontakte haben).
+
+```{r}
+eigen_centrality(gump_net)$`vector`[1:6]
+```
+
 
 ## closeness centrality
 
-## pagerank centrality
+Die ```closeness centrality``` misst die mittlere Entfernung von einem Scheitelpunkt zu anderen Scheitelpunkten. Dabei werden wieder die Pfade genutzt, also die geodätische, kürzeste Distanz zwischen zwei Knoten.
+
+Dieser Wert nimmt niedrige Werte für Scheitelpunkte an, die durchschnittlich nur durch eine kurze geodätische Entfernung von anderen getrennt sind. Solche Scheitelpunkte haben möglicherweise einen besseren Zugriff auf Informationen an anderen Knoten oder einen direkteren Einfluss auf andere Akteure.
+
+```{r}
+closeness(gump_net) %>% head()
+```
+
+
+## weitere Zentralitätswerte
+
+Hier wurden nur die geläufigsten Zentralitätswerte aufgeführt. Es gibt noch zahlreiche weitere mögliche Werte. Weitere häufiger vorkommende Zentralitäten findet man unter folgenden Stichpunkten:
+
+* PageRank centrality
+* Bonacich power
+* Flow betweenness
+* Load centrality
+* Information centrality
+* Stress centrality
+* Harary graph
+* Bonacich alpha
+* Kleinberg authority
+* Kleinberg hub
 
 
 # Subgroups and communities
 
+Granovetter (1973) schlug in seinem Klassiker "Die Stärke der schwachen Bindungen (1973)" vor, dass viele soziale Netzwerke aus vielen relativ dicht verbundenen Untergruppen (z. B. Freundschafts-Subnetzwerken) bestehen, die selbst nur über weniger starke Bindungen (z.B. miteinander verbunden Bekannte) miteinander verbunden sind. Daraus folgt, dass es wichtig ist, solche Untergruppen definieren und identifizieren zu können.
+
+Ein grundlegendes Merkmal sozialer Netzwerke (verglichen mit zufälligen Netzwerken) ist daher das Vorhandensein von Clustering oder die Neigung, Gruppen zu bilden. Der Prozess findet in einem sozialen Netzwerk statt, wenn bspw. zwei Personen, die einen gemeinsamen Freund haben, auch selbst Freunde werden. Viele Algorithmen in der sozialen Netzwerkanalyse basieren auf dieser Idee der Analyse von geschlossenen Dreiecken (Triaden).
+
+## Transitivity
+
+Das Ausmaß, wie stark ein Netzwerk untereinander verbunden ist, kann in einem sozialen Netzwerk durch die ```Transitivität``` gemessen werden. Transitivität ist definiert als das Verhältnis geschlossener Dreiecke (Triaden, bei denen alle drei Bindungen beobachtet werden) zur Gesamtzahl aller möglichen Dreiecke (Triaden, bei denen entweder zwei oder alle drei Bindungen beobachtet werden). Die Transitivität ist also wie die Dichte ein Verhältnis, das zwischen 0 und 1 liegen kann.
+
+```{r}
+transitivity(gump_net)
+```
 
 ## Cliquen
 
+```Cliquen``` sind eine der einfachsten Arten zusammenhängender Untergruppen und aufgrund ihrer einfachen Definition auch eine der am leichtesten zu verstehenden Arten. Eine Clique ist ein maximal vollständiger Teilgraph. Das heißt, es ist eine Teilmenge von Knoten, die alle möglichen Bindungen untereinander haben. Zwischen allen beteiligten Knoten in einer Clique besteht eine direkte Verbindung. Alternativ wird das Konzept der ```k-cores``` genutzt. Dabei wird die strenge Regel, dass JEDER in der Clique mit ALLEN anderen verbunden sein muss, etwas gelockert.
 
 ```{r}
 # cliques(gump_net) # list of cliques       
@@ -96,6 +166,24 @@ plot(gump_net, vertex.label=V(gump_net)$name, vertex.color=vcol, vertex.label.ce
 ```
 
 ## Community Detection
+
+Mittlerweile lassen sich aus der Analyse solcher Cliquen auch größere Communities automatisiert identifizieren. Das Feld der sozialen Netzwerkanalyse hat bereits zahlreiche Algorithmen hervorgebracht, welche unterschiedliche Kriterien für die Einordnung eines Knotens in eine Community anlegen.
+
+Grundsätzlich basieren alle Arten und Ansätze aber auf der Idee, dass bestimmte Knoten sich einander sehr ähnlich sind. Viele Algorithmen ähneln daher den Spielarten der Clusteranalyse oder basieren auf dieser. Aktuell sind im igraph-Paket folgende community-detection-algorithmen enthalten:
+
+* Edge-betweenness -- cluster edge betweenness()
+* Leading eigenvector -- cluster leading eigen()
+* Fast-greedy cluster -- fast greedy()
+* Louvain cluster -- louvain()
+* Walktrap cluster -- walktrap()
+* Label propagation -- cluster label prop()
+* InfoMAP cluster -- infomap()
+* Spinglass cluster -- spinglass()
+* Optimal cluster -- optimal()
+
+Da die Algorithmen allerdings z.T. unterschiedliche Kriterien heranziehen, unterscheiden sich auch die Ergebnisse voneinander.
+
+
 ```{r}
 ceb <- cluster_edge_betweenness(gump_net1) 
 dendPlot(ceb, mode="hclust")
@@ -111,7 +199,7 @@ plot(cfg,gump_net1)
 
 ## edge density
 
-Ein gängiges Merkmal von Netzwerken ist z.B. die Netzwerkdichte. Die Dichte ergibt sich aus der Aufsummierung aller vorhandenen Beziehungen bezogen auf die Zahl der maximal möglichen Verbindungen innerhalb eines Netzwerks. Es ergibt sich ein Wert zwischen 0 und 1, wobei ein Wert nahe Null auf eine niedrige Netzwerkdichte schließen lässt. Mit der Netzwerkdichte sind einige Implikationen für die Funktionsweise des Netzwerkes verbunden. Beispielsweise kann eine hohe Netzwerkdichte die Verbreitung von Innovationen, Neuigkeiten oder den Transfer von Ressourcen begünstigen. Akteure in dichten Netzwerken werden i.d.R. früher von Innovationen erfahren und ausprobieren als Akteure in Netzwerken, die relativ unverbunden sind.
+Ein gängiges Merkmal von Netzwerken ist z.B. die ```Netzwerkdichte```. Die Dichte ergibt sich aus der Aufsummierung aller vorhandenen Beziehungen bezogen auf die Zahl der maximal möglichen Verbindungen innerhalb eines Netzwerks. Es ergibt sich ein Wert zwischen 0 und 1, wobei ein Wert nahe Null auf eine niedrige Netzwerkdichte schließen lässt. Mit der Netzwerkdichte sind einige Implikationen für die Funktionsweise des Netzwerkes verbunden. Beispielsweise kann eine hohe Netzwerkdichte die Verbreitung von Innovationen, Neuigkeiten oder den Transfer von Ressourcen begünstigen. Akteure in dichten Netzwerken werden i.d.R. früher von Innovationen erfahren und ausprobieren als Akteure in Netzwerken, die relativ unverbunden sind.
 
 ```{r}
 edge_density(gump_net)
@@ -128,7 +216,7 @@ farthest_vertices(gump_net)
 
 ## average path length
 
-Die durchschnittliche Pfadlänge ist ein Konzept, das als durchschnittliche Anzahl von Schritten entlang der kürzesten Pfade für alle möglichen Paare von Netzwerkknoten definiert ist. Ähnlich wie die Dichte, kann es dafür genutzt werden, den *Zusammenhalt* in einem Netzwerk zu analysieren.
+Die ```durchschnittliche Pfadlänge``` ist ein Konzept, das als durchschnittliche Anzahl von Schritten entlang der kürzesten Pfade für alle möglichen Paare von Netzwerkknoten definiert ist. Ähnlich wie die Dichte, kann es dafür genutzt werden, den *Zusammenhalt* in einem Netzwerk zu analysieren.
 
 ```{r}
 mean_distance(gump_net, directed = FALSE)
@@ -136,9 +224,9 @@ mean_distance(gump_net, directed = FALSE)
 
 ## network randomizations
 
-Jedes Netzwerk weist eine „strukturelle Signatur“ auf, die bestimmte selbstorganisierende Prinzipien enthält und sich jeweils individuell durch die oben aufgeführten Kennzahlen auszeichnet. Für ein gegebenes Netzwerk ergibt sich die Stabilität dieser Prinzipien aus der Konstanz allgemeiner sozialer Verhaltensweisen, die wir als Menschen in sozialen Kontexten entwickelt haben. Für ein gegebenes Netzwerk ändern sich diese Kennzahlen also potentiell nur langsam oder wenig.
+Jedes Netzwerk weist eine *strukturelle Signatur* auf, die bestimmte selbstorganisierende Prinzipien enthält und sich jeweils individuell durch die oben aufgeführten Kennzahlen auszeichnet. Für ein gegebenes Netzwerk ergibt sich die Stabilität dieser Prinzipien aus der Konstanz allgemeiner sozialer Verhaltensweisen, die wir als Menschen in sozialen Kontexten entwickelt haben. Für ein gegebenes Netzwerk ändern sich diese Kennzahlen also potentiell nur langsam oder wenig.
 
-Diese Organisationsprinzipien können allerdings je nach Kontext mehr oder weniger stark variieren -- sie sind deshalb weder deterministisch noch haben sie einen optimalen Wert. Auch die oben aufgeführten Werte, lassen sich ohne weiteren Kontext nur schwer einordnen. Ist eine durchschnittliche Pfaddistanz von ```round(mean_distance(gump_net, directed = FALSE),)``` viel oder wenig? Hängen die Akteure im Netzwerk besonders dicht zusammen oder nicht?
+Diese Organisationsprinzipien können allerdings je nach Kontext mehr oder weniger stark variieren -- sie sind deshalb weder deterministisch noch haben sie einen optimalen Wert. Auch die oben aufgeführten Werte, lassen sich ohne weiteren Kontext nur schwer einordnen. Ist eine durchschnittliche Pfaddistanz von ```round(mean_distance(gump_net, directed = FALSE), 2)``` viel oder wenig? Hängen die Akteure im Netzwerk besonders dicht zusammen oder nicht?
 
 Wir suchen letztlich also nach Mustern im Netzwerk. Es reicht jedoch nicht aus, die Daten für jeweils ein Muster zu untersuchen, da Strukturen aufeinander aufbauen. Zum Beispiel enthält eine Triade drei Netzwerkverknüpfungen. Wenn ein Netzwerk viele Verbindungen hat, könnte es sein, dass wir besonders viele Cliquen (Triaden) beobachten - allerdings völlig *by chance*. Die Frage ist dann: Angesichts der Dichte des Netzwerks, sehen wir mehr Cliquen als erwartet?
 
@@ -168,4 +256,4 @@ ggplot() +
 
 Das ForrestGump-Netzwerk weißt demnach eine sehr geringe durchschnittliche Distanz zwischen den Knoten auf, verglichen mit anderen Netzwerken mit gleicher Dichte und gleicher Anzahl an Knoten. Das ergibt insofern inhaltlich Sinn, dass mit Forrest ein Akteur sehr zentral im Netzwerk ist, der mit nahezu allen anderen Akteuren in einer direkten Verbindung steht.
 
-
+![](https://media.giphy.com/media/CUbiYQbsKSGAM/giphy.gif)
