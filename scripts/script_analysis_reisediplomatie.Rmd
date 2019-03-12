@@ -16,12 +16,65 @@ library(reshape2)
 ```
 
 ```{r}
-#load("C:/OwnCloud/SH/Workshops_Talks/KollegEuropa_Studienstiftung_Netzwerkanalyse_Prag/R/network_analysis_KollegEuropa/data/data_preprocessed.Rdata")
-load("D:/KollegEuropa_Studienstiftung_Netzwerkanalyse_Prag/R/network_analysis_KollegEuropa/data/data_preprocessed.Rdata")
+load("C:/OwnCloud/SH/Workshops_Talks/KollegEuropa_Studienstiftung_Netzwerkanalyse_Prag/R/network_analysis_KollegEuropa/data/data_preprocessed.Rdata")
+#load("D:/KollegEuropa_Studienstiftung_Netzwerkanalyse_Prag/R/network_analysis_KollegEuropa/data/data_preprocessed.Rdata")
 ```
 
 
 # Analyse des Two-Mode-Netzwerks
+
+Es gibt verschiedene Ansätze für die Analyse von Zugehörigkeitsdaten, ohne die Umwandlung in Co-Affiliation-Netze. Da Zugehörigkeitsgraphen auch Graphen sind, liegt der naheliegende Ansatz darin, einfach alle Standardalgorithmen und -techniken des Netzwerkanalyse-Toolkits zu verwenden, die für normale Netze im Allgemeinen gelten. 
+
+Dabei gehen wir entweder davon aus, dass die spezielle Natur von Affiliationsnetzen die Techniken nicht beeinflusst, oder wir können vorgeben, dass Bindungen innerhalb von Knotensätzen aufgetreten sein könnten und einfach nicht aufgetreten sind. Dieser Ansatz funktioniert für eine kleine Klasse von Methoden, jedoch keineswegs für alle.
+
+Ein alternativer Ansatz besteht darin, neue Metriken und Algorithmen zu entwickeln, die speziell für den TwoMode-Fall designed wurden. Das hört sich nach viel mehr Arbeit an, aber in der Praxis ist es oft möglich, Metriken anzupassen, die für allgemeine Diagramme ausgelegt sind, indem einfach eine entsprechende Post-hoc-Normalisierung angewendet wird. Besonders bei Zentralitätsmaßen ist das meist der bessere Weg.^[2: Theoretische und mathematische Hintergründe zu der Normalisierung von Netzwerkmaßen für bipartite Netzwerke findet man in Scott/Carrington: The SAGE Handbook of Social Network Analysis, 2011, S. 425f]
+
+Im Degree-Fall ist es nicht sinnvoll, den einfachen Grad (Anzahl aller Verbindungen des Knotens) zu zählen und daraus die Dichte zu errechnen. Denn zwischen den Knoten einer Gruppe können ja gar keine Verbindungen bestehen. Eine sinnvolle Änderung ist es also, wenn die Dichte auf der Grundlage der Verbindungen besteht, die der Knoten mit der Gruppe des anderen Typs aufweist.
+
+```{r}
+density_bipartite <- function(graph) {
+  if (is.directed(graph)) {
+    ecount(graph) / sum(V(graph)$type) / sum(!V(graph)$type) / 2.0} 
+  else {
+    ecount(graph) / sum(V(graph)$type) / sum(!V(graph)$type)
+  }
+}
+
+edge_density(rd_igraph)
+density_bipartite(rd_igraph)
+```
+
+Auch bei der Closeness-Zentralität bietet sich eine Anpassung an. Diese wurde an dieser Stelle in ein externes Script ausgelagert (```bipartite_closeness_centrality.R```) und kann dort bei Bedarf nachvollzogen werden.
+
+```{r}
+source("bipartite_closeness_centrality.R")
+
+bipartite_closeness_centrality(rd_igraph)
+
+bipartite_closeness_centrality(rd_igraph) %>% unlist() %>% unname() %>% round(3) %>% as_tibble() %>% 
+  mutate(name = V(rd_igraph)$name,
+         type = case_when(V(rd_igraph)$type == TRUE ~ "eu",
+                          TRUE ~ "non-eu")) %>% 
+  select(name, closeness_centrality = value, type) %>%
+  arrange(type, -closeness_centrality) %>% 
+  datatable(options = list(pageLength = 20))
+```
+
+Gleiches gilt für die Betweenness-Zentralität:
+
+```{r}
+source("bipartite_betweenness_centrality.R")
+
+bipartite_betweenness_centrality(rd_igraph)
+
+bipartite_betweenness_centrality(rd_igraph) %>% unlist() %>% unname() %>% round(3) %>% as_tibble() %>% 
+  mutate(name = V(rd_igraph)$name,
+         type = case_when(V(rd_igraph)$type == TRUE ~ "eu",
+                          TRUE ~ "non-eu")) %>% 
+  select(name, betweenness_centrality = value, type) %>%
+  arrange(type, -betweenness_centrality) %>% 
+  datatable(options = list(pageLength = 20))
+```
 
 
 # Analyse der One-Mode-Projektionen
@@ -54,7 +107,7 @@ Die Länder die am wenigsten gemeinsame Besuchsländer hatten, lassen sich über
 ```{r}
 farthest_vertices(rd_eu28)
 
-mean_distance(net, directed=F)
+mean_distance(rd_eu28, directed=FALSE)
 ```
 
 ## Welche Länder sind im Netzwerk besonders auffallend?
@@ -73,7 +126,7 @@ r_degree <- degree(rd_eu28)
 data.frame(r_degree)
 
 plot.igraph(rd_eu28,
-            vertex.size = r_degree*100)
+            vertex.size = r_degree*2)
 
 hist(r_degree, breaks=1:vcount(rd_eu28)-1, main="Histogram of node degree")
 ```
@@ -110,25 +163,6 @@ data.frame(r_degree,r_closeness,r_betweenness) %>%
 ```
 
 
-## network descriptives
-
-```{r}
-edge_density(rd_eu28)
-```
-
- Transitivity
-
-    global - ratio of triangles (direction disregarded) to connected triples.
-    local - ratio of triangles to connected triples each vertex is part of.
-
-
-```{r}
-transitivity(rd_eu28, type="global")
-transitivity(rd_eu28, type="local")
-```
-
-
-
 ## Subgroups and communities
 
 Cliques
@@ -154,6 +188,9 @@ dendPlot(ceb, mode="hclust")
 
 plot(ceb,rd_eu28) 
 ```
+
+
+
 
 
 

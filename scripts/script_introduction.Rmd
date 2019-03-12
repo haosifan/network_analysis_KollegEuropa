@@ -45,14 +45,14 @@ list.vertex.attributes(gump_net)
 V(gump_net)$degree <- degree(gump_net, mode = "all")
 list.vertex.attributes(gump_net)
 
-plot.igraph(gump_net, vertex.size = V(gump_net)$degree)
+plot.igraph(gump_net, vertex.size = V(gump_net)$degree/2, layout = layout_nicely, vertex.label.cex=0.7)
 ```
 
-Netzwerke können aufgrund von diesen Attributen auch weiter unterteilt oder eingeschränkt werden.
+Netzwerke können aufgrund von diesen Attributen auch weiter unterteilt oder eingeschränkt werden. Hier werden nur die Knoten ausgewählt, die ein ```degree``` von über 5 aufweisen und dem neuen Objekt gump_net1 zugewiesen.
 
 ```{r}
 table(V(gump_net)$degree)
-gump_net1 <- induced.subgraph(gump_net, vids=V(gump_net)$degree > 6)
+gump_net1 <- induced.subgraph(gump_net, vids=V(gump_net)$degree > 5)
 plot.igraph(gump_net1, vertex.size = V(gump_net1)$degree/2)
 ```
 
@@ -62,9 +62,9 @@ plot.igraph(gump_net1, vertex.size = V(gump_net1)$degree/2)
 ## degree
 
 ```{r}
-degree(gump_net)
+degree(gump_net) %>% head()
+which.max(degree(gump_net))
 ```
-
 
 ## betweenness
 
@@ -82,9 +82,9 @@ degree(gump_net)
 
 
 ```{r}
-cliques(gump_net) # list of cliques       
+# cliques(gump_net) # list of cliques       
 
-sapply(cliques(gump_net), length) # clique sizes
+sapply(cliques(gump_net), length)
 
 largest_cliques(gump_net)
 ```
@@ -92,7 +92,7 @@ largest_cliques(gump_net)
 ```{r}
 vcol <- rep("grey80", vcount(gump_net))
 vcol[unlist(largest_cliques(gump_net))] <- "gold"
-plot(gump_net, vertex.label=V(gump_net)$name, vertex.color=vcol)
+plot(gump_net, vertex.label=V(gump_net)$name, vertex.color=vcol, vertex.label.cex = 0.5, layout = layout_nicely)
 ```
 
 ## Community Detection
@@ -111,11 +111,15 @@ plot(cfg,gump_net1)
 
 ## edge density
 
+Ein gängiges Merkmal von Netzwerken ist z.B. die Netzwerkdichte. Die Dichte ergibt sich aus der Aufsummierung aller vorhandenen Beziehungen bezogen auf die Zahl der maximal möglichen Verbindungen innerhalb eines Netzwerks. Es ergibt sich ein Wert zwischen 0 und 1, wobei ein Wert nahe Null auf eine niedrige Netzwerkdichte schließen lässt. Mit der Netzwerkdichte sind einige Implikationen für die Funktionsweise des Netzwerkes verbunden. Beispielsweise kann eine hohe Netzwerkdichte die Verbreitung von Innovationen, Neuigkeiten oder den Transfer von Ressourcen begünstigen. Akteure in dichten Netzwerken werden i.d.R. früher von Innovationen erfahren und ausprobieren als Akteure in Netzwerken, die relativ unverbunden sind.
+
 ```{r}
 edge_density(gump_net)
 ```
 
 ## diameter
+
+Der ```diameter``` ist die Länge der längsten Entfernung zwischen zwei Knoten. Hier ist die Unterscheidung zwischen gerichteten und ungerichteten Netzwerken wichtig, weil es hier darauf ankommt, über welche Verbindung man *in welche Richtung* gehen kann.
 
 ```{r}
 diameter(gump_net, directed = FALSE)
@@ -124,10 +128,44 @@ farthest_vertices(gump_net)
 
 ## average path length
 
+Die durchschnittliche Pfadlänge ist ein Konzept, das als durchschnittliche Anzahl von Schritten entlang der kürzesten Pfade für alle möglichen Paare von Netzwerkknoten definiert ist. Ähnlich wie die Dichte, kann es dafür genutzt werden, den *Zusammenhalt* in einem Netzwerk zu analysieren.
+
 ```{r}
 mean_distance(gump_net, directed = FALSE)
 ```
 
 ## network randomizations
+
+Jedes Netzwerk weist eine „strukturelle Signatur“ auf, die bestimmte selbstorganisierende Prinzipien enthält und sich jeweils individuell durch die oben aufgeführten Kennzahlen auszeichnet. Für ein gegebenes Netzwerk ergibt sich die Stabilität dieser Prinzipien aus der Konstanz allgemeiner sozialer Verhaltensweisen, die wir als Menschen in sozialen Kontexten entwickelt haben. Für ein gegebenes Netzwerk ändern sich diese Kennzahlen also potentiell nur langsam oder wenig.
+
+Diese Organisationsprinzipien können allerdings je nach Kontext mehr oder weniger stark variieren -- sie sind deshalb weder deterministisch noch haben sie einen optimalen Wert. Auch die oben aufgeführten Werte, lassen sich ohne weiteren Kontext nur schwer einordnen. Ist eine durchschnittliche Pfaddistanz von ```round(mean_distance(gump_net, directed = FALSE),)``` viel oder wenig? Hängen die Akteure im Netzwerk besonders dicht zusammen oder nicht?
+
+Wir suchen letztlich also nach Mustern im Netzwerk. Es reicht jedoch nicht aus, die Daten für jeweils ein Muster zu untersuchen, da Strukturen aufeinander aufbauen. Zum Beispiel enthält eine Triade drei Netzwerkverknüpfungen. Wenn ein Netzwerk viele Verbindungen hat, könnte es sein, dass wir besonders viele Cliquen (Triaden) beobachten - allerdings völlig *by chance*. Die Frage ist dann: Angesichts der Dichte des Netzwerks, sehen wir mehr Cliquen als erwartet?
+
+Exponential random graph models (ERGM) sind eine Familie statistischer Modelle für soziale Netzwerke, die unter gegebenen Netzwerkstrukturen, Rückschlüsse auf Muster in den Daten zulassen. Kurz gesagt, werden bspw. 1000 Netzwerke mit einer gegebenen Knotenanzahl und gegebener Dichte simuliert. Der Algorithmus verteilt die Verbindungen zwischen den Knoten zufällig und anschließend wird für jedes dieser Netzwerke bpsw. die durchschnittliche Distanz errechnet. Im Vergleich zu diesen 1000 Netzwerken lässt sich das *Ursprungsnetzwerk* dann vergleichen.
+
+```{r}
+# Generate 1000 random graphs
+g_random <- vector('list',1000)
+
+for(i in 1:1000){
+  
+  g_random[[i]] <- sample_gnp(n = gorder(gump_net), 
+                              p = edge_density(gump_net), 
+                              directed = FALSE)
+}
+
+# apply mean_distance on every graph
+g_random_meandis <- unlist(lapply(g_random, mean_distance, directed = FALSE))
+
+mean_distance(gump_net, directed = FALSE)
+# graphical comparison to original network
+ggplot() + 
+  aes(g_random_meandis)+ 
+  geom_histogram(bins = 50, colour="black", fill="white")+
+  geom_vline(xintercept = mean_distance(gump_net, directed = FALSE), colour="red", linetype = "longdash")
+```
+
+Das ForrestGump-Netzwerk weißt demnach eine sehr geringe durchschnittliche Distanz zwischen den Knoten auf, verglichen mit anderen Netzwerken mit gleicher Dichte und gleicher Anzahl an Knoten. Das ergibt insofern inhaltlich Sinn, dass mit Forrest ein Akteur sehr zentral im Netzwerk ist, der mit nahezu allen anderen Akteuren in einer direkten Verbindung steht.
 
 
