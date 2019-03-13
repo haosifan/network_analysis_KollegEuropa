@@ -236,7 +236,7 @@ Diese Organisationsprinzipien können allerdings je nach Kontext mehr oder wenig
 
 Wir suchen letztlich also nach Mustern im Netzwerk. Es reicht jedoch nicht aus, die Daten für jeweils ein Muster zu untersuchen, da Strukturen aufeinander aufbauen. Zum Beispiel enthält eine Triade drei Netzwerkverknüpfungen. Wenn ein Netzwerk viele Verbindungen hat, könnte es sein, dass wir besonders viele Cliquen (Triaden) beobachten - allerdings völlig *by chance*. Die Frage ist dann: Angesichts der Dichte des Netzwerks, sehen wir mehr Cliquen als erwartet?
 
-Exponential random graph models (ERGM) sind eine Familie statistischer Modelle für soziale Netzwerke, die unter gegebenen Netzwerkstrukturen, Rückschlüsse auf Muster in den Daten zulassen. Kurz gesagt, werden bspw. 1000 Netzwerke mit einer gegebenen Knotenanzahl und gegebener Dichte simuliert. Der Algorithmus verteilt die Verbindungen zwischen den Knoten zufällig und anschließend wird für jedes dieser Netzwerke bpsw. die durchschnittliche Distanz errechnet. Im Vergleich zu diesen 1000 Netzwerken lässt sich das *Ursprungsnetzwerk* dann vergleichen.
+```Exponential random graph models``` (ERGM) sind eine Familie statistischer Modelle für soziale Netzwerke, die unter gegebenen Netzwerkstrukturen, Rückschlüsse auf Muster in den Daten zulassen. Kurz gesagt, werden bspw. 1000 Netzwerke mit einer gegebenen Knotenanzahl und gegebener Dichte simuliert. Der Algorithmus verteilt die Verbindungen zwischen den Knoten zufällig und anschließend wird für jedes dieser Netzwerke bpsw. die durchschnittliche Distanz errechnet. Im Vergleich zu diesen 1000 Netzwerken lässt sich das *Ursprungsnetzwerk* dann vergleichen.
 
 ```{r}
 # Generate 1000 random graphs

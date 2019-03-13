@@ -10,6 +10,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 library(igraph)
 library(tidyverse)
+library(knitr)
+library(gridExtra)
 ```
 
 # Affiliationsnetzwerke
@@ -124,8 +126,9 @@ busy_actor %>%
   arrange(desc(Movies))
 ```
 
-
-![](https://media.giphy.com/media/26BRzozg4TCBXv6QU/giphy.gif) ![](https://media.giphy.com/media/uN5UYT8VnQ5UI/giphy.gif)
+```{r, echo=FALSE,out.width="49%", out.height="20%",fig.show='hold',fig.align='center'}
+include_graphics(c("https://media.giphy.com/media/uN5UYT8VnQ5UI/giphy.gif", "https://media.giphy.com/media/26BRzozg4TCBXv6QU/giphy.gif"))
+```
 
 Hier könnte man jetzt noch einiges mehr machen. Das bringt uns in unserem Beispiel aber nicht weiter und nutzt eigentlich auch nicht wirklich die Möglichkeiten eines bipartiten Netzwerks. Bisher könnten man diese Erkenntnisse ja auch quasi mit deskriptiver Statistik ermitteln. Damit man auch wieder die allgemeinen statistischen Berechnungen für soziale Netzwerkanalyse anwenden kann, muss das bipartite Netzwerk in zwei Projektionen zerlegt werden.
 

@@ -20,14 +20,20 @@ load("C:/OwnCloud/SH/Workshops_Talks/KollegEuropa_Studienstiftung_Netzwerkanalys
 #load("D:/KollegEuropa_Studienstiftung_Netzwerkanalyse_Prag/R/network_analysis_KollegEuropa/data/data_preprocessed.Rdata")
 ```
 
+Grundsätzlich sieht das Reisediplomatie-Netzwerk bereits so aus. Limitations bzw. offene Fragen finden sich im ```script_datawrangling.Rmd```. 
+
+```{r}
+plot.igraph(rd_igraph,
+            vertex.color = V(rd_igraph)$type)
+```
 
 # Analyse des Two-Mode-Netzwerks
 
-Es gibt verschiedene Ansätze für die Analyse von Zugehörigkeitsdaten, ohne die Umwandlung in Co-Affiliation-Netze. Da Zugehörigkeitsgraphen auch Graphen sind, liegt der naheliegende Ansatz darin, einfach alle Standardalgorithmen und -techniken des Netzwerkanalyse-Toolkits zu verwenden, die für normale Netze im Allgemeinen gelten. 
+Es gibt verschiedene Ansätze für die Analyse von Zugehörigkeitsdaten, ohne die Umwandlung in ```Co-Affiliation-Netze``` (Projections). Da Zugehörigkeitsgraphen auch Graphen sind, liegt der naheliegende Ansatz darin, einfach alle Standardalgorithmen und -techniken des Netzwerkanalyse-Toolkits zu verwenden, die für normale Netze im Allgemeinen gelten. 
 
 Dabei gehen wir entweder davon aus, dass die spezielle Natur von Affiliationsnetzen die Techniken nicht beeinflusst, oder wir können vorgeben, dass Bindungen innerhalb von Knotensätzen aufgetreten sein könnten und einfach nicht aufgetreten sind. Dieser Ansatz funktioniert für eine kleine Klasse von Methoden, jedoch keineswegs für alle.
 
-Ein alternativer Ansatz besteht darin, neue Metriken und Algorithmen zu entwickeln, die speziell für den TwoMode-Fall designed wurden. Das hört sich nach viel mehr Arbeit an, aber in der Praxis ist es oft möglich, Metriken anzupassen, die für allgemeine Diagramme ausgelegt sind, indem einfach eine entsprechende Post-hoc-Normalisierung angewendet wird. Besonders bei Zentralitätsmaßen ist das meist der bessere Weg.^[2: Theoretische und mathematische Hintergründe zu der Normalisierung von Netzwerkmaßen für bipartite Netzwerke findet man in Scott/Carrington: The SAGE Handbook of Social Network Analysis, 2011, S. 425f]
+Ein alternativer Ansatz besteht darin, neue Metriken und Algorithmen zu entwickeln, die speziell für den TwoMode-Fall designed wurden. Das hört sich nach viel mehr Arbeit an, aber in der Praxis ist es oft möglich, Metriken anzupassen, die für allgemeine Diagramme ausgelegt sind, indem einfach eine entsprechende Post-hoc-Normalisierung angewendet wird. Besonders bei Zentralitätsmaßen ist das meist der bessere Weg.^[1: Theoretische und mathematische Hintergründe zu der Normalisierung von Netzwerkmaßen für bipartite Netzwerke findet man in Scott/Carrington: The SAGE Handbook of Social Network Analysis, 2011, S. 425f]
 
 Im Degree-Fall ist es nicht sinnvoll, den einfachen Grad (Anzahl aller Verbindungen des Knotens) zu zählen und daraus die Dichte zu errechnen. Denn zwischen den Knoten einer Gruppe können ja gar keine Verbindungen bestehen. Eine sinnvolle Änderung ist es also, wenn die Dichte auf der Grundlage der Verbindungen besteht, die der Knoten mit der Gruppe des anderen Typs aufweist.
 
@@ -44,7 +50,9 @@ edge_density(rd_igraph)
 density_bipartite(rd_igraph)
 ```
 
-Auch bei der Closeness-Zentralität bietet sich eine Anpassung an. Diese wurde an dieser Stelle in ein externes Script ausgelagert (```bipartite_closeness_centrality.R```) und kann dort bei Bedarf nachvollzogen werden.
+Auch bei der Closeness-Zentralität bietet sich eine Anpassung an. Diese wurde an dieser Stelle in ein externes Script ausgelagert (```bipartite_closeness_centrality.R```) und kann dort bei Bedarf nachvollzogen werden. 
+
+> Erinnerung ```Closeness```: mittlere Entfernung von einem Scheitelpunkt zu anderen Scheitelpunkten.
 
 ```{r}
 source("bipartite_closeness_centrality.R")
@@ -60,7 +68,9 @@ bipartite_closeness_centrality(rd_igraph) %>% unlist() %>% unname() %>% round(3)
   datatable(options = list(pageLength = 20))
 ```
 
-Gleiches gilt für die Betweenness-Zentralität:
+Gleiches gilt für die Betweenness-Zentralität.
+
+> Erinnerung ```Betweenness```: Ausmaß, in dem ein Knoten auf Pfaden zwischen anderen Knoten liegt.
 
 ```{r}
 source("bipartite_betweenness_centrality.R")
@@ -79,13 +89,12 @@ bipartite_betweenness_centrality(rd_igraph) %>% unlist() %>% unname() %>% round(
 
 # Analyse der One-Mode-Projektionen
 
-Die gemeinsame Untersuchung beider Knotentypen in einer Two-Mode-Netzwerkgrafik ist häufig der erste Schritt beim Studium eines Zugehörigkeitsnetzwerks. Es ist jedoch auch sinnvoll die One-Mode-Projektionen des Netzwerks zu untersuchen.
-Die Funktion ```bipartite.projection``` gibt eine Liste von zwei igraph-Netzwerkobjekten zurück. Das erste Netzwerk besteht aus direkten Verbindungen zwischen dem ersten Modus und das zweite Netzwerk zeigt die Verbindungen zwischen dem zweiten Modus.
+Die gemeinsame Untersuchung beider Knotentypen in einer Two-Mode-Netzwerkgrafik ist häufig der erste Schritt beim Studium eines Zugehörigkeitsnetzwerks. Es ist jedoch auch sinnvoll die ```One-Mode-Projektionen``` des Netzwerks zu untersuchen.
+Die Funktion ```bipartite.projection``` gibt eine Liste von zwei igraph-Netzwerkobjekten zurück. Das erste Netzwerk besteht aus direkten Verbindungen zwischen dem ersten Modus und das zweite Netzwerk zeigt die Verbindungen zwischen dem zweiten Modus. In unserem Fall also ein Netzwerk aller EU28-Länder und ein Netzwerk aller Gastgeberländer.
 
 ```{r}
 rd_projection <- bipartite.projection(rd_igraph)
 rd_projection
-
 
 rd_hosts <- rd_projection$proj1
 rd_eu28 <- rd_projection$proj2
@@ -98,7 +107,7 @@ plot.igraph(rd_hosts)
 
 # Analyse des EU28-Netzwerks
 
-Das EU28-Netzwerk ist ein Co-occurence-Netzwerk (One-Mode-Projektion des ursprünglichen Reisediplomatienetzwerks). Zwei Länder der EU28 haben dann eine Verbindung, wenn sie das gleiche Gastland besucht haben. Das Netzwerk ist ein ungerichtetes Netzwerk.
+Das EU28-Netzwerk ist ein ```Co-occurence-Netzwerk``` (One-Mode-Projektion des ursprünglichen Reisediplomatienetzwerks). Zwei Länder der EU28 haben dann eine Verbindung, wenn sie das gleiche Gastland besucht haben. Das Netzwerk ist ein ungerichtetes Netzwerk.
 
 ## Distances and paths
 
@@ -106,9 +115,17 @@ Die Länder die am wenigsten gemeinsame Besuchsländer hatten, lassen sich über
 
 ```{r}
 farthest_vertices(rd_eu28)
+diameter(rd_eu28)
 
 mean_distance(rd_eu28, directed=FALSE)
 ```
+
+## edge density
+
+```{r}
+edge_density(rd_eu28)
+```
+
 
 ## Welche Länder sind im Netzwerk besonders auffallend?
 
@@ -117,7 +134,7 @@ Es gibt jedoch eine Reihe von Möglichkeiten, diese Art der Zentralität zu oper
 
 ### Degree centrality
 
-Das einfachste Maß für die Zentralität basiert auf der Annahme, dass ein Knoten mit mehr direkten Bindungen stärker hervortritt als Knoten mit weniger oder keinen Bindungen. Diese Form nennt man degree centrality und entspricht einfach der Anzahl an Kanten. Alternativ lässt sich die Grad-Zentralität über einen Anteil der Verbindungen des Knotens an den gesamten Verbindungen ausdrücken.
+> Erinnerung degree: Anzahl, wie viele Nachbarn ein Knoten hat.
 
 ```{r}
 degree(rd_eu28)
@@ -128,12 +145,17 @@ data.frame(r_degree)
 plot.igraph(rd_eu28,
             vertex.size = r_degree*2)
 
-hist(r_degree, breaks=1:vcount(rd_eu28)-1, main="Histogram of node degree")
+
+ggplot() + 
+  aes(r_degree)+ 
+  geom_histogram(bins = 12, colour="black", fill="white")+
+  labs(title = "Histogram of node degrees (eu28-projection)",
+       x = "degree")
 ```
 
 ### Closeness Centrality
 
-Anstatt nur die direkten Verbindungen der Knoten zu untersuchen, können wir uns darauf konzentrieren, wie nahe sich jeder Knoten an jedem anderen Knoten in einem Netzwerk befindet. Dies führt zu dem Konzept der Closeness-Zentralität, wobei Knoten in dem Ausmaß, in dem sie sich in der Nähe aller anderen Knoten im Netzwerk befinden, eine größere Rolle spielen.
+> Erinnerung closeness: mittlere Entfernung von einem Scheitelpunkt zu anderen Scheitelpunkten
 
 ```{r}
 r_closeness <- closeness(rd_eu28)
@@ -142,35 +164,55 @@ data.frame(r_closeness)
 
 ### Betweenness
 
-Welche Knoten müssen am häufigsten durchlaufen werden? Die Betweenness-Zentralität misst das Ausmaß, in dem ein Knoten zwischen Paaren anderer Knoten im Netzwerk sitzt, so dass ein Pfad zwischen den anderen Knoten diesen Knoten durchlaufen muss. Ein Knoten mit einem hohen Wert ist daher interessant, weil dieser Knoten in der Lage ist, den Informationsfluss im Netzwerk zu beobachten oder zu steuern.
+> Erinnerung betweenness: Ausmaß, in dem ein Knoten auf Pfaden zwischen anderen Knoten liegt.
 
 ```{r}
 r_betweenness <- igraph::betweenness(rd_eu28)
 data.frame(r_betweenness)
 ```
 
+
+### Eigenvector-Centrality
+
+> Erinnerung eigenvector: Ein Knoten ist wichtig, wenn er mit anderen wichtigen Knoten verbunden ist.
+
+```{r}
+r_eigen <- eigen_centrality(rd_eu28)
+data.frame(r_eigen$vector)
+```
+
+
 Alle Ergebnisse gesammelt und in sortierbarer Tabelle:
 
 ```{r}
-data.frame(r_degree,r_closeness,r_betweenness) %>% 
-  round(digits = 4) %>% 
-  datatable(iris,options = list(pageLength = 20))
+results_df <- data.frame(r_degree,r_closeness, r_betweenness, r_eigen$vector) %>%
+  rownames_to_column() %>% as_tibble() %>% 
+  mutate_if(is.numeric, round, 4) %>% 
+  arrange(rowname)
+
+datatable(results_df, options = list(pageLength = 20))
 ```
 
 ```{r}
-data.frame(r_degree,r_closeness,r_betweenness) %>%
-  cor()
+t_cor <- results_df %>% 
+  select(-1) %>% 
+  as.matrix() %>% 
+  cor() %>% 
+  melt()
 ```
 
 
 ## Subgroups and communities
 
-Cliques
+### Transitivität
+```{r}
+transitivity(rd_eu28)
+```
+
+### Größte Clique
+
 ```{r}
 #cliques(rd_eu28) # list of cliques       
-
-sapply(cliques(rd_eu28), length) # clique sizes
-
 largest_cliques(rd_eu28)
 ```
 
@@ -180,16 +222,83 @@ vcol[unlist(largest_cliques(rd_eu28))] <- "gold"
 plot(as.undirected(rd_eu28), vertex.label=V(rd_eu28)$name, vertex.color=vcol)
 ```
 
-Community detection
+### Community detection
 ```{r}
 ceb <- cluster_edge_betweenness(rd_eu28) 
+cle <- cluster_leading_eigen(rd_eu28)
 
 dendPlot(ceb, mode="hclust")
+dendPlot(cle, mode="hclust")
 
 plot(ceb,rd_eu28) 
+plot(cle,rd_eu28)
 ```
 
+# Exponential Random Graph Models
 
+Wie "besonders" sind unsere Projektionsnetzwerke im Vergleich zu ähnlich aufgebauten Netzwerken?
+
+```{r}
+g_random <- vector('list',1000)
+
+for(i in 1:1000){
+  
+  g_random[[i]] <- sample_gnp(n = gorder(rd_eu28), 
+                              p = edge_density(rd_eu28), 
+                              directed = FALSE)
+}
+
+# apply mean_distance on every graph
+g_random_meandis <- unlist(lapply(g_random, mean_distance, directed = FALSE))
+
+mean_distance(rd_eu28, directed = FALSE)
+# graphical comparison to original network
+ggplot() + 
+  aes(g_random_meandis)+ 
+  geom_histogram(bins = 50, colour="black", fill="white")+
+  geom_vline(xintercept = mean_distance(rd_eu28, directed = FALSE), colour="red", linetype = "longdash")+
+  labs(title = "ERGM: mean distance",
+       x = "mean distance")
+```
+
+```{r}
+g_random <- vector('list',1000)
+
+for(i in 1:1000){
+  
+  g_random[[i]] <- sample_gnp(n = gorder(rd_eu28), 
+                              p = edge_density(rd_eu28), 
+                              directed = FALSE)
+}
+
+# apply mean_distance on every graph
+g_random_meandis <- unlist(lapply(g_random, mean_distance, directed = FALSE))
+
+g_random_diameter <- unlist(lapply(g_random, diameter, directed = FALSE))
+
+g_random_transitivity <- unlist(lapply(g_random, transitivity))
+
+ggplot() + 
+  aes(g_random_meandis)+ 
+  geom_histogram(bins = 50, colour="black", fill="white")+
+  geom_vline(xintercept = mean_distance(rd_eu28, directed = FALSE), colour="red", linetype = "longdash")+
+  labs(title = "ERGM: mean distance",
+       x = "mean distance")
+
+ggplot() + 
+  aes(g_random_diameter)+ 
+  geom_histogram(bins = 50, colour="black", fill="white")+
+  geom_vline(xintercept = diameter(rd_eu28, directed = FALSE), colour="red", linetype = "longdash")+
+  labs(title = "ERGM: diameter",
+       x = "diameter")
+
+ggplot() + 
+  aes(g_random_transitivity)+ 
+  geom_histogram(bins = 50, colour="black", fill="white")+
+  geom_vline(xintercept = transitivity(rd_eu28), colour="red", linetype = "longdash")+
+  labs(title = "ERGM: transitivity",
+       x = "transitivity")
+```
 
 
 
