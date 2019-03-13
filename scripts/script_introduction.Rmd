@@ -9,11 +9,17 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(igraph)
+library(knitr)
 ```
 
 Zur Veranschaulichung nutzen wir das ```Forest Gump Network```: Each edge of the network indicates that those two characters were in at least one scene of the movie together. Therefore this network is undirected.
 
-```{r}
+```{r, out.width = "50%", fig.align='center', echo = FALSE}
+include_graphics("https://media.giphy.com/media/xT9IgG50Fb7Mi0prBC/giphy.gif")
+```
+
+
+```{r warnings = FALSE}
 gump_raw <- read_csv("../data/gump.csv")
 head(gump_raw, 15)
 gump_net <- gump_raw %>% as.matrix() %>% igraph::graph_from_edgelist(directed = FALSE)
@@ -39,7 +45,7 @@ Häufig kommen Netzwerkdaten aber auch in Matrixform vor. Diese sogenannte ```ad
 gump_net %>% igraph::get.adjacency(sparse = FALSE) %>% data.frame() %>% .[1:5,1:5]
 ```
 
-Meistens existieren noch weitere Attribute, die man den Knoten hinzufügen möchte. Dies können bspw. verschiedene Arten von Knoten im Netzwerk sein (Geschlecht, Parteizugehörigkeit, ethnische Zugehörigkeit, ...) oder aber auch direkte Anweisungen für die Grafik. Das sind dann z.B. Attribute wie Farbe des Knotens oder ob der Knoten als Kreis oder Quadrat dargestellt werden soll. Auch der Knotenname ist meist ein eigenes Attribut. Meistens basiert eine vernünftige Netzwerkvisualisierung auf der Nutzung dieser Attribute. Dabei können sowohl die Knoten als auch die Verbindungen zwischen ihnen (edges) eigene Attribute besitzen.
+Meistens existieren noch weitere Attribute, die man den Knoten hinzufügen möchte. Dies können bspw. verschiedene Arten von Knoten im Netzwerk sein (Geschlecht, Parteizugehörigkeit, ethnische Zugehörigkeit, ...) oder aber auch direkte Anweisungen für die Grafik. Das sind dann z.B. Attribute wie Farbe des Knotens oder ob der Knoten als Kreis oder Quadrat dargestellt werden soll. Auch der Knotenname ist meist ein eigenes Attribut. Oftmals basiert eine vernünftige Netzwerkvisualisierung auf der Nutzung dieser Attribute. Dabei können sowohl die Knoten als auch die Verbindungen zwischen ihnen (edges) eigene Attribute besitzen.
 
 ```{r}
 list.vertex.attributes(gump_net)
@@ -256,4 +262,10 @@ ggplot() +
 
 Das ForrestGump-Netzwerk weißt demnach eine sehr geringe durchschnittliche Distanz zwischen den Knoten auf, verglichen mit anderen Netzwerken mit gleicher Dichte und gleicher Anzahl an Knoten. Das ergibt insofern inhaltlich Sinn, dass mit Forrest ein Akteur sehr zentral im Netzwerk ist, der mit nahezu allen anderen Akteuren in einer direkten Verbindung steht.
 
-![](https://media.giphy.com/media/CUbiYQbsKSGAM/giphy.gif)
+---
+
+```{r, out.width = "50%", fig.align='center', echo = FALSE}
+include_graphics("https://media.giphy.com/media/CUbiYQbsKSGAM/giphy.gif")
+```
+
+
