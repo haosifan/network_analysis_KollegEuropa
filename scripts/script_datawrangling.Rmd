@@ -1,8 +1,8 @@
 ---
-title: "Kolleg Europa - Network Analysis"
+title: "Kolleg Europa - Social Network Analysis"
 subtitle: "Datenaufbereitung"
 author: "Stefan Haussner"
-date: "6 März 2019"
+date: "20. März 2019"
 output: html_document
 ---
 

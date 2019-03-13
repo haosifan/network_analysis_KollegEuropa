@@ -1,0 +1,919 @@
+---
+title: "R-Workshop EPVoteTrack"
+author: "Stefan Haussner"
+date: "20 September 2018"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(gapminder)
+library(viridis)
+```
+
+# Introduction to R
+
+Eine Übersicht über gängige Basis-Funktionen bietet der BaseR-CheatSheet: http://github.com/rstudio/cheatsheets/raw/master/base-r.pdf
+
+## R as a calculator
+
+```{r}
+2+2
+4*3
+12.5/pi
+3^5
+2+3*6
+(2+3)*6
+
+```
+
+## In R everything is an object
+
+```{r}
+x <- 5
+y <- 12
+x+y
+x*y
+z <- x+y
+z
+```
+
+## Vectors
+
+
+```{r}
+l1 <- c(x^1,x^2,x^3,x^4,x^5)
+l2 <- c(y*1,y*2,y*3,y*4,y*5)
+
+l1 + l2
+```
+
+## Functions
+
+Eine Funktion bereits gesehen. "c()"
+Funktionen sind bereits vorgefertigte "Miniprogramme", manchmal aber auch sehr einfache, die mit einem bestimmten Objekt etwas bestimmtes tun.
+
+Bsp: c(): Concatenate = Verknüpfen: Die Elemente innerhalb der Klammer, werden miteinander kombiniert und zu einem Vektor zusammengefasst.
+
+Andere Beispiele sind bestimmte mathematische Funktionen, wie Mittelwert oder Standardabweichung. Beinahe alles in R wird durch Funktionen erledigt. Eine Funktion ist immer zusammen gesetzt aus dem Namen und den Eingabeparametern innerhalb von Klammern. Gibt es keine Eingabeparameter wird die Klammer leer - aber nicht weg - gelassen.
+
+```{r}
+summary(l1)
+var(l1)
+sd(l1)
+sum(l1)
+mean(l2)
+
+round(3.63545234123, digits = 4)
+
+plot(l1)
+plot(c(5,25,2123,123,5345),l2)
+```
+
+In R können auch ganz einfach eigene Funktionen geschrieben werden. Hilfe gibt es hier: https://www.datacamp.com/community/tutorials/functions-in-r-a-tutorial
+Zu allen Funktionen gibt es eine Hilfe, welche die möglichen Optionen (*arguments*) und die grundsätzliche Funktionsweise der Funktion beschreibt. ACHTUNG: Ohne Klammern hinter der Funktion, über die man Infos haben will.
+
+```{r eval = F}
+help(sd)
+?sd
+?summary
+```
+
+## Only numbers?
+
+Bisher hatten wir nur Zahlen in unseren Beispielen. In R ist es aber auch möglich (und meistens unproblematisch) mit anderen Datentypen - wie bspw. Text oder Ja/Nein-Zuständen - zu arbeiten.
+
+
+### Text
+
+Inhalte mit Text wird meist in Anführungsstriche oder Hochkommata gesetzt. Die *Klasse* dieses Objekts ist dann automatisch *character*
+```{r}
+txt <- "Das ist ein Text"
+txt
+class(txt)
+```
+
+### Boolean/Logical
+
+Manchmal bietet es sich an nur "Wahr" oder "Falsch" als eigenen Datentypen zu nutzen. Die Schlüsselwörter hier sind TRUE und FALSE. Immer das ganze Wort großgeschrieben. Oftmals wird diese Klasse dafür genutzt Zustände abzufragen, bspw. ob etwas größer ist, ob der Inhalt übereinstimmt etc:
+
+```{r}
+WAHRODERFALSCH <- FALSE
+class(WAHRODERFALSCH)
+isTRUE(WAHRODERFALSCH)
+3 > 5
+ist3groesser5 <- 3 > 5
+"Ist das ein Text" == txt
+```
+
+### Integer und Float-Variablen
+
+Zurück zu Zahlen: Bei Zahlen in R gibt es Unterschiede, ob die Zahl eine "Ganzzahl" (*integer*) oder eine Zahl mit Nachkommastellen (*numeric*) ist. Normalerweise ist der Unterschied in R egal und mann kann mit beiden Typen identisch arbeiten.  Es kann aber Fälle geben, in denen man den Typ bewusst ändern muss.
+
+```{r}
+is.integer(3.541)
+is.integer(3)
+class(3)
+integer3 <- as.integer(3)
+is.integer(integer3)
+class(3.654)
+```
+
+### Factor
+
+Bei der Arbeit mit Surveys kommen außerdem häufig noch *factors* for. Faktoren werden verwendet, um kategorische Daten darzustellen. Faktoren können geordnet oder ungeordnet sein und sind eine wichtige Klasse für statistische Analysen und zum Plotten.
+
+Faktoren werden als Ganzzahlen gespeichert und diesen eindeutigen Ganzzahlen sind Beschriftungen zugeordnet. Während Faktoren wie Zeichenvektoren aussehen (und sich oft verhalten), sind sie tatsächlich in Wirklichkeit ganze Zahlen. Manchmal führt das zu Problemen, wenn man sie wie *strings/character* behandelt.
+
+```{r error = TRUE}
+education <- factor(c("low", "high", "medium", "high", "low", "medium", "high"))
+levels(education)
+education
+education <- factor(education, levels = c("low", "medium", "high"))
+levels(education)
+
+min(education) # doesn't work
+
+education <- factor(education, levels = c("low", "medium", "high"), ordered = TRUE)
+levels(education)
+
+min(education) # works!
+```
+
+### verschiedene Datentypen in einer Tabelle
+
+Fügt man unterschiedliche Datentypen zusammen, so ist der Unterschied zwischen einer *matrix* und einem *data.frame* wichtig (siehe nächstes Kapitel). Während in einer matrix nur Elemente des gleichen Datentyps vorhanden sein können, sind bei einem data.frame auch unterschiedliche erlaubt.
+
+```{r}
+
+numbers <- c(1,2,31,43,5,16)
+txt <- c("a","b","oma","uni","zwei Wörter","z")
+logical <- c(FALSE,TRUE,FALSE,FALSE,TRUE,FALSE)
+factors <- factor(c("low", "high", "medium", "high", "low", "medium"))
+
+tabelle <- cbind(numbers,txt,logical,factors) 
+## zum verbinden von Spalten (column-bind); zum verbinden von Zeilen rbind() (row-bind)
+tabelle #Man sieht, alle Datentypen wurden zu "Texten" gemacht. Anführungsstriche sind um die Werte herum.
+class(tabelle) # R hat die Tabelle automatisch zur Matrix gemacht und deshalb alle Datentypen "gleich" gemacht.
+
+tabelle2 <- data.frame(numbers,txt,logical,factors, stringsAsFactors = FALSE)
+tabelle2
+class(tabelle2)
+class(tabelle2$txt)
+class(tabelle2$numbers)
+
+# Im Data.frame, sind alle Datentypen erhalten.
+
+```
+
+## Data Frames
+
+Normalerweise haben wir als Sozialwissenschaftler aber selten einzelne Rechnungen oder Vektoren sondern Tabellen mit Zeilen als Beobachtungen und Spalten als Variablen. Diese werden in R als *Data Frames* dargestellt (oder als Matrix, aber mit dataframes ist es meistens einfacher zu arbeiten).
+
+```{r}
+data.frame(l1,l2)
+df <- data.frame(l1,l2)
+```
+
+Einzelne Elemente des *df* lassen sich über eckige Klammern hinter dem Objektnamen auswählen. Dabei ist die erste Zahl die Nummer der Zeile und die zweite Zahl die Nummer der Spalte. Durch weglassen einer Zahl, wird entweder die ganze Zeile oder die ganze Spalte ausgegeben.
+
+```{r}
+df[3,2]
+df[ ,2]
+df[3, ]
+df[4,5]
+```
+
+Variablen (Spalten) lassen sich auch durch den Namen anwählen, indem hinter den Objektnamen ein *$* geschrieben wird. RStudio schlägt einem dann meist sogar eine Liste vor, aus der man auswählen kann. Wiederrum kann man durch eckige Klammern, einzelne oder mehrere Elemente auswählen.
+
+```{r}
+summary(df)
+summary(df$l1)
+df$l2
+
+df$l1[3]
+df$l2[4]
+df$l1[1:3]
+df$l1[1:2]
+df$l1[c(3,5)]
+```
+
+Durch logische Operatoren lassen sich so bestimmte Zeilen suchen/ausschließen. So könnte man beispielsweise einen Datensatz mit mehreren Ländern so bearbeiten, dass am Ende nur ein Land heraus käme. Oder nur Menschen über 55 Jahre im Datensatz enthalten sind etc.
+
+```{r}
+df
+df[df$l1>100, ]
+```
+*Gesprochen: Der Datensatz df und alle Spalten (Hinter dem Komma ist leer). Aber nur die Zeilen, wo in Spalte 1 (l1) Werte über 100 stehen.*
+
+## Arbeitsverzeichnis und die Arbeitsumgebung
+
+Im Arbeitsverzeichnis liegen alle Dateien und Materialien. Das Arbeitsverzeichnis lässt sich auch über den Explorer etc. auf dem Computer, ganz normal über die Ordnerstruktur einsehen.
+
+In R kann man sich sowohl den Pfad zum aktuellen Arbeitsverzeichnis anzeigen lassen:
+```{r eval = F}
+getwd()
+```
+
+Oder einen anderen Pfad als Arbeitsverzeichnis setzen:
+```{r eval = F}
+setwd('C://file/path')
+```
+
+Den Inhalt des Arbeitsverzeichnis kann man über dir() anzeigen lassen:
+```{r eval = F}
+dir()
+ls()
+rm(list = ls()) 
+
+```
+
+
+
+
+Das Arbeitsverzeichnis beinhaltet "reale" Dateien. In der Arbeitsumgebung finden sich die Objekte der aktuellen R-Sitzung. Diese sind aber nur im Arbeitsspeicher und nicht tatsächlich auf der Festplatte gespeichert.
+
+Einsehen kann man die aktuellen Objekte entweder direkt in R-Studio (meistens oben rechts unter "Environment") oder über die Funktion ls():
+```{r}
+ls()
+```
+
+## Daten einlesen
+
+Die einfachste Art Daten einzulesen ist, wenn sie als einfach "Text-Datei" vorliegen. Beispielsweise .CSV (comma-separated-values), oder anderweitige Formate mit einem eindeutigen Symbol als Trennzeichen für Spalten.
+
+Aber auch andere Formate lassen sich in R einlesen, nur braucht man hierzu meistens zusätzliche Pakete und Funktionen.
+
+### Aus csv-Dateien
+
+Im amerikanischen Raum wird die csv-Datei mit Kommata als Spaltentrennzeichen und dem Punkt als Dezimalzeichen bei Zahlen verwendet. Im europäischen Raum wird meistens das Semikolon als Spaltentrennzeichen und das Komma als Dezimalzeichen genutzt. In R wurden deshalb 2 Arten von CSV-Einlese-Funktionen implementiert. read.csv für den amerikanischen Raum und read.csv2 für den europäischen. Die Funktionen lassen sich aber über die Optionen (*arguments*) anpassen.
+
+```{r}
+read.csv(file = "datensatz_grades.csv", sep = ";", dec = ",")
+read.csv2(file = "datensatz_grades.csv")
+daten <- read.csv2(file = "datensatz_grades.csv")
+```
+
+### Dateien aus Stata oder SPSS
+
+Daten von anderen statistischen Sprachen lassen sich meist mit dem Paket *foreign* einlesen und auch in diesen Formaten abspeichern.
+
+```{r}
+#install.packages(c("openxlsx","foreign"))
+library(foreign)
+
+read.spss("datensatz_grades.sav")
+read.dta("datensatz_grades.dta")
+```
+
+### Aus Excel-Dateien
+
+Zunächst einmal ist es möglich aus Excel heraus auch CSV-Dateien zu speichern. Arbeitet man also selber erst mit Excel und will seine Daten dann in R einlesen, ist es meistens einfacher, die Datei direkt als CSV zu speichern. Hat man aber eine xlsx-Datei so kann man diese mit den Paketen *xlsx* oder *openxlsx* einlesen.
+
+```{r}
+library(openxlsx)
+grades <- read.xlsx('datensatz_grades.xlsx', sheet = 1)
+grades
+```
+
+
+# Basic Statistics with R
+...
+
+## Summaries and Frequencies
+```{r}
+summary(grades)
+summary(grades$Note.P1)
+
+table(grades$Note.P1)
+table(grades$Note.P1, grades$Note.P2)
+```
+
+## t-Test
+
+```{r}
+semester_neuerKurs <- c(7,3,5,5,5,5,7,5,3,7,5,5,11,7,5)
+
+t.test(grades$semester, semester_neuerKurs, paired = F) 
+```
+
+t.test(grades$,y2,paired=TRUE)
+
+## Correlation
+
+```{r}
+cor(grades$Note.P1, grades$Note.P3)
+cor.test(grades$Note.P1, grades$Note.P3)
+```
+
+
+## Chi²
+
+```{r}
+grades$gesamt_round <- round(grades$gesamt,0)
+grades$P1_round <- round(grades$Note.P1,0)
+
+table(grades$P1_round, grades$gesamt_round)
+chisq.test(grades$P1_round, grades$gesamt_round)
+
+#install.packages("lsr")
+library(lsr)
+cramersV(table(grades$P1_round, grades$gesamt_round))
+```
+
+## Linear Regression
+
+```{r}
+plot(grades$Note.P1, grades$gesamt)
+
+model1 <- lm(formula = grades$gesamt ~ grades$Note.P1)
+summary(model1)
+
+model2 <- lm(formula = grades$gesamt ~ grades$Note.P1 + grades$Note.P2 + grades$Note.P3)
+summary(model2)
+```
+
+
+# the dplyr-package and the grammar behind
+
+## pipes in R
+
+Statt komplizierte Klammerstrukturen zu nutzen oder nach jedem Schritt das Objekt neu abzuspeichern, ist es durch das *magittr*-package möglich sogenannte *pipes* zu nutzen. Durch das *dplyr*-Paket wurden *pipes* zu einer besonderen Innovation und ändern den workflow in R. Oft wird dadurch der Code sehr viel einfacher lesbar. Durch eine pipe (*%>%*) lassen sich Ergebnisse aus dem einen Befehl, direkt in den nächsten "überführen".
+
+### Beispiel
+
+```{r}
+s1 <- 3+6
+s2 <- exp(s1)
+s3 <- round(s2, 3)
+s4 <- s3 > 1000
+
+# oder
+
+t <- round(exp((3+6)),3) > 1000
+
+# unkomplizierter
+
+u <- (3+6) %>% 
+  exp() %>% 
+  round(.,3) > 1000
+
+```
+
+
+## the filter verb
+
+logical operators "==" nicht "="
+aus gapminder wird nichts entfernt, sondern der filter nur onscreen ausgegeben
+Inhalt mit Text mit Anführungsstrichen
+
+Multiple conditions mit Komma
+
+```{r}
+gapminder[gapminder$year==2007, ]
+
+gapminder %>% 
+  filter(year == 2007)
+
+gapminder %>% 
+  filter(country == "United States")
+
+gapminder %>% 
+  filter(year == 2007, country == "United States")
+```
+
+***
+
+## the select verb
+
+Select specific variables (columns) by name. No need for complicated counting or concatenating by with c() and square brackets. You can select ranges of variables using ":". Use the "-" to drop columns. You can change the order, in which the variables appear in the data frame. You can also select and renaming variables at the same time.
+
+
+
+```{r}
+gapminder
+
+
+gapminder %>% 
+  select(country, year, lifeExp)
+
+gapminder %>% 
+  select(country, lifeExp:gdpPercap)
+
+gapminder %>% 
+  select(-continent)
+
+gapminder %>% 
+  select(continent, country, year:gdpPercap) #switch continent and country
+
+gapminder %>% 
+  select(kontinent = continent, land = country, jahr = year)
+```
+
+
+## the arrange verb
+
+```{r}
+gapminder %>% 
+  arrange(gdpPercap)
+
+gapminder %>% 
+  arrange(desc(gdpPercap))
+
+gapminder %>% 
+  arrange(year, gdpPercap)
+```
+
+***
+
+## the mutate verb
+
+existing and new variables
+
+```{r}
+gapminder %>% 
+  mutate(pop_mio = pop / 1000000)
+```
+
+total GDP
+now spaces only one word
+
+```{r}
+gapminder %>% 
+  mutate(gdp = gdpPercap * pop)
+```
+
+
+## Combining with pipes
+
+...
+
+## Assigning new "objects"
+
+Natürlich kann man die kompletten Ketten auch in einem neuen Objekt sichern.
+
+```{r}
+
+gapminder2 <- gapminder %>% 
+  mutate(gdp = gdpPercap * pop) %>% 
+  arrange(gdp)
+gapminder2
+```
+
+
+## the summarize verb
+
+many rows into one
+
+```{r}
+gapminder %>% 
+  summarize(meanLifeExp = mean(lifeExp))
+```
+
+"mean()" ist eine built-in Funktion. Hier logischerweise der Mittelwert.
+R hat einige solcher built-in Funktionen, die man sich nicht selber schreiben muss
+
+Beispiele bringen:
+
+* mean()
+* sum()
+* median()
+* min()
+* max()
+
+Eigentlich natürlich keinen Sinn den Mittelwert über alles zu machen
+
+
+```{r}
+gapminder %>%
+  filter(year == 2007) %>%
+  summarise(meanLifeExp = mean(lifeExp))
+```
+
+mehrere Spalten (Variablen gleichzeitig)
+
+```{r}
+gapminder %>%
+  filter(year == 2007) %>%
+  summarise(meanLifeExp = mean(lifeExp),
+            totalPop = sum(as.numeric(pop)))
+```
+
+## the group_by verb
+
+Ich möchte nicht die LifeExpectancy oder Population über alle Länder und alle Zeitpunkte
+Daher gruppiere ich den Datensatz in verschiedene Teile, basierend auf der Variable "year"
+
+```{r echo = T, results = "hide", warning=F}
+gapminder %>%
+  group_by(year) %>%
+  summarize(meanLifeExp = mean(lifeExp),
+            totalPop = sum(pop))
+```
+Produziert bei mir Fehler (integer overflow), deshalb wie in Fehlermeldung vorgeschlagen "as.integer". Innerhalb der Funktionen, lassen sich also wieder weitere Funktionen verschachteln
+
+```{r}
+gapminder_3 <- gapminder %>%
+  group_by(year) %>%
+  summarize(meanLifeExp = mean(lifeExp),
+            totalPop = sum(as.integer(pop)))
+```
+
+Jetzt finde ich das auch nicht besonders aussagekräftig. Bei dem Durchschnitt sind alle Ländern mit drin.
+Deshalb filtern nur für das Jahr 2007 und anschließend nach Kontinent.
+
+```{r}
+gapminder %>%
+  filter(year == 2007) %>%
+  group_by(continent) %>%
+  summarize(meanLifeExp = mean(lifeExp),
+            totalPop = sum(as.numeric(pop)))
+```
+
+Jetzt wollen wir aber jeweils den Durchschnitt für alle Jahr und alle Kontinente.
+group_by lässt sich auch mit mehreren Variablen nutzen. Gruppierung nach mehreren Variablen.
+
+
+```{r}
+gapminder %>%
+  group_by(year, continent) %>%
+  summarize(totalPop = sum(as.integer(pop)),
+            meanLifeExp = mean(lifeExp))
+```
+
+Nach summarise ist die Gruppierung aufgehoben. 
+
+```{r}
+gapminder %>%
+  group_by(year, continent) %>%
+  summarize(totalPop = sum(as.integer(pop)),
+            meanLifeExp = mean(lifeExp)) %>% 
+  arrange(desc(totalPop))
+```
+
+Wenn ich aber zB arrange direkt nach group_by ausführe, dann werden die Gruppen weiter berücksichtigt -> Sortierung innerhalb von Gruppen.
+
+```{r}
+gapminder %>%
+  group_by(year, continent) %>%
+  arrange(desc(pop))
+```
+
+Durch anschließen von ungroup() kann ich die Gruppierung wieder aufheben.
+
+## Joins - Merging different datasets into one
+
+* left_join(x, y): Return all rows from x, and all columns from x and y. If there are multiple matches between x and y, all combination of the matches are returned. This is a mutating join.
+
+![](../dplyr_joins_gifs/left_join.gif)
+
+* right_join(x, y): Return all rows from y, and all columns from x and y. Rows in y with no match in x will have NA values in the new columns. If there are multiple matches between x and y, all combinations of the matches are returned.
+
+<!-- ![](../dplyr_joins_gifs/right_join.gif)-->
+
+* full_join(x, y): Return all rows and all columns from both x and y. Where there are not matching values, returns NA for the one missing. This is a mutating join.
+
+<!-- ![](../dplyr_joins_gifs/full_join.gif)-->
+
+* inner_join(x, y): Return all rows from x where there are matching values in y, and all columns from x and y. If there are multiple matches between x and y, all combination of the matches are returned. This is a mutating join.
+
+<!-- ![](../dplyr_joins_gifs/inner_join.gif)-->
+
+* semi_join(x, y): Return all rows from x where there are matching values in y, keeping just columns from x. A semi join differs from an inner join because an inner join will return one row of x for each matching row of y, where a semi join will never duplicate rows of x. This is a filtering join.
+
+<!-- ![](../dplyr_joins_gifs/semi_join.gif)-->
+
+* anti_join(x, y): Return all rows from x where there are not matching values in y, keeping just columns from x. This is a filtering join.
+
+<!-- ![](../dplyr_joins_gifs/anti_join.gif)-->
+
+# Visualising
+
+## with ggplot2
+
+```{r}
+library(ggplot2)
+```
+
+ggplot2 von Hadley Wickham
+auch hier eine eigene "Grammatik"
+Modular aufgebaut (Bedeutet was? - add a layer)
+
+```{r echo=FALSE}
+gapminder_2007 <- gapminder %>% filter(year==2007)
+```
+
+Ein neuer Datensatz wurde durch erstellt: gapminder_2007. Durch die filter-Funktion enthält er nur die Daten aus dem Jahr 2007.
+
+```{r}
+gapminder_2007
+```
+
+
+```{r}
+ggplot(gapminder_2007, aes(x = gdpPercap, y = lifeExp))+
+  geom_point()+
+  geom_line()+
+  geom_smooth(method = 'lm')
+```
+
+
+## Add log scales
+
+```{r}
+ggplot(gapminder_2007, aes(x = gdpPercap, y = lifeExp))+
+  geom_point()
+```
+
+Problem: Viele Länder am linken Rand, mit sehr geringem gdpPercap
+Lösungsmöglichkeit: Log Scale (Modularer Aufbau - Hinzufügen eines "Moduls" log_scale)
+
+```{r}
+ggplot(gapminder_2007, aes(x = gdpPercap, y = lifeExp))+
+  geom_point()+
+  scale_x_log10()
+```
+
+```{r}
+ggplot(gapminder_2007, aes(x = pop, y = gdpPercap))+
+  geom_point()+
+  scale_x_log10()+
+  scale_y_log10()
+```
+
+## Adding trend lines
+
+```{r}
+ggplot(gapminder_2007, aes(x = gdpPercap, y = lifeExp))+
+  geom_point()+
+  scale_x_log10()+
+  geom_smooth()
+```
+
+
+## Additional aesthetics
+
+Bisher hatten wir nur x und y
+Mit aesthetics (aes) lassen sich aber auch noch mehr Merkmale kontrollieren
+Farbe, Gruppen, Punktgröße etc.
+
+Automatisches Hinzufügen der Legende
+
+
+```{r}
+ggplot(gapminder_2007) +
+  geom_point(aes(x = gdpPercap, y = lifeExp, color = continent)) +
+  scale_x_log10()
+```
+
+
+Notes: Zweite Zeile bei size, macht dem Code nichts aus. Nach Kommata wird sogar einigermaßen schön eingerückt
+
+```{r}
+ggplot(gapminder_2007, aes(x = gdpPercap, y = lifeExp, 
+                           color = continent, 
+                           size = pop)) +
+  geom_point() +
+  scale_x_log10()
+```
+
+
+## Faceting
+
+Unterteilung in "Untergrafiken", unterteilt nach einer bestimmten Kategorie
+
+```{r}
+ggplot(gapminder_2007, aes(x = gdpPercap, y = lifeExp)) +
+  geom_point() +
+  scale_x_log10() +
+  facet_wrap(~ continent)
+```
+
+
+```{r}
+ggplot(gapminder, aes(x = gdpPercap, y = lifeExp, color = lifeExp, size = pop))+
+  geom_point()+
+  scale_x_log10()+
+  facet_wrap(~ year)+
+  scale_color_viridis()
+```
+
+
+Neues Objekt (Datensatz speichern): gapminder gruppert nach Jahr und die Population und durchschnittliche Lebenserwartung pro Jahr zusammengefasst.
+
+```{r}
+by_year <- gapminder %>%
+  group_by(year) %>%
+  summarize(totalPop = sum(as.integer(pop)),
+            meanLifeExp = mean(lifeExp))
+
+by_year
+```
+
+```{r}
+ggplot(by_year, aes(x = year, y = totalPop)) +
+  geom_point()
+```
+
+
+Hier enthält die y-Achse nicht die 0 (Meistens großer Fehler). Wir müssen deshalb die Skala bearbeiten und anpassen. Wieder kann dies durch ein neues "Modul" passieren.
+
+```{r}
+ggplot(by_year, aes(x = year, y = totalPop)) +
+  geom_point() +
+  expand_limits(y = 0)
+```
+
+
+Neues Objekt (Datensatz) mit einer Gruppierung nach Year und continent.
+
+```{r}
+by_year_continent <- gapminder %>%
+  group_by(year, continent) %>%
+  summarize(totalPop = sum(as.numeric(pop)),
+            meanLifeExp = mean(lifeExp))
+
+by_year_continent
+```
+
+Durch Farbe können wir wieder die verschiedenen Kontinenten voneinander trennen.
+
+```{r}
+ggplot(by_year_continent, aes(x = year, y = totalPop, color = continent)) +
+  geom_point() +
+  expand_limits(y = 0)+
+  scale_color_viridis(discrete = T)
+```
+
+
+Bisher nur "Scatterplots", mit geom_point(). Jede Menge andere Varianten ebenso möglich.
+Wahl des Graphen abhängig von dem Skalenniveau der Daten und dem Ziel, was die Grafik zeigen soll.
+
+## Line Plots
+
+```{r}
+ggplot(by_year_continent, aes(x = year, y = meanLifeExp, color = continent)) +
+  geom_point() +
+  expand_limits(y = 0)
+
+ggplot(by_year_continent, aes(x = year, y = meanLifeExp, color = continent)) +
+  geom_line() +
+  expand_limits(y = 0)
+```
+
+Man kann aber auch mehrere Graphtypen miteinander verbinden. Wieder durch die modulare "Grammatik" des Pakets.
+
+```{r}
+ggplot(by_year_continent, aes(x = year, y = meanLifeExp, color = continent)) +
+  geom_line() +
+  geom_point() +
+  expand_limits(y = 0)
+```
+
+## Barplots
+
+Neuer Datensatz mit der durchschnittlichen Lebenserwartung pro Kontinent für das Jahr 2007
+
+```{r}
+by_continent <- gapminder %>%
+  filter(year == 2007) %>%
+  group_by(continent) %>%
+  summarize(meanLifeExp = mean(lifeExp))
+
+by_continent
+```
+
+Unerwarterweise nicht geom_bar. Das gibts aber auch.
+Hier geom_col. Bei geom_bar könnte man das gleiche Ergebnis erreichen, müsste aber noch zusätzliche Argumente anfügen.
+
+```{r}
+ggplot(by_continent, aes(x = continent, y = meanLifeExp)) +
+  geom_col()
+```
+
+
+## Histogram
+
+Nur ein "aesthetic". Die x-Variable. Die Anzahl pro Balken rechnet R dann selber aus. Auch die Breite der Balken wir selbst optimiert. Diese kann man aber anpassen.
+
+```{r}
+ggplot(gapminder_2007, aes(x = lifeExp)) +
+  geom_histogram()
+
+ggplot(gapminder_2007, aes(x = lifeExp)) +
+  geom_histogram(binwidth = 5)
+```
+
+## Boxplots
+
+Compare distributions across continents.
+
+Black Line: Median,
+Box: 25% and 75%. Half of the distribution inside the box.
+whiskers: Additional countries
+Dots: Outliers (out of 95%)
+
+```{r}
+ggplot(gapminder_2007, aes(x = continent, y = lifeExp)) +
+  geom_point()
+
+ggplot(gapminder_2007, aes(x = continent, y = lifeExp)) +
+  geom_boxplot()
+```
+
+## Labels
+
+```{r}
+ggplot(gapminder_2007, aes(x = continent, y = gdpPercap)) +
+  geom_boxplot() +
+  scale_y_log10() + 
+  labs(title = "Comparing GDP per capita across continents",
+       x = "Continent",
+       y = "GDP per capita")
+```
+
+
+# Regular Expressions in R
+
+"Reguläre Ausdrücke" sind eine Art Sprache, die beim Programmieren für diverse Problemlösungen verwendet werden kann, insbesondere dann, wenn es darum geht, Zeichenketten (Strings) zu bearbeiten, zu prüfen oder in ihnen etwas zu suchen. Und weil der Name "Reguläre Ausdrücke" etwas unhandlich ist, heißen die "Regular Expressions" auch oft einfach nur "RegEx".
+
+[https://www.hackerearth.com/practice/machine-learning/advanced-techniques/regular-expressions-string-manipulation-r/tutorial/]
+
+```{r}
+cntr <- unique(gapminder$country)
+
+## Alle Länder die ein O am Ende haben
+cntr[grep(pattern = "[o]", x = cntr)] ## Reicht nicht.
+cntr[grep(pattern = "[o$]", x = cntr)] ## innerhalb von regex matched das $-Zeichen das Ende einer Zeile
+
+cntr[grep(pattern = "[[:punct:]]", x = cntr)] # alle punctuation characters
+
+
+
+names <- c("anna","crissy","puerto","cristian","garcia","steven","alex","rudy")
+
+#doesn't matter if e is a match
+grep(pattern = "e*",x = names,value = T)
+
+#must match t one or more times
+grep(pattern = "t+",x = names,value = T)
+
+#must match n two times
+grep(pattern = "n{2}",x = names,value = T)
+
+```
+
+
+# Working with Web Data
+Internetseiten verwenden verschiedene Sprachen für die Seitenbeschreibung, dahinterliegende Datenbanken etc. Diese sind meistens baumartig aufgebaut. Das bedeutet, dass von einem Knotenpunkt mehrere "Äste" abgehen können und ihrerseits wieder Äste bilden. Jedes Blatt (Element) ist dadurch aber eindeutig einem bestimmten Weg von Ästen bis zum Stamm zuzuordnen. Durch diesen Weg kann man navigieren, da jeder Knoten weiß welche Äste er hat und umgekehrt.
+
+siehe Datacamp-pdf S. 20ff
+
+Im Paket rvest geht diese Navigation über "parents" und "children" oder direkt konkrete Schlüsselwörter.
+
+Beispiel: Links auf Wahlseite des Bundeswahlleiters.
+
+```{r}
+library(plyr)
+library(dplyr)
+library(rvest)
+library(stringr)
+
+url <- "https://www.bundeswahlleiter.de/bundestagswahlen/2017/ergebnisse/bund-99.html"
+webpage <- read_html(url)
+
+#Erstelle Liste von Bundesland-Links
+
+bl_url_list <- html_nodes(webpage, '.linklist') %>% 
+  html_nodes('a') %>% # alle Knoten die Links sind
+  html_attr("href") %>% # Bei den Knoten will man nur den wirklichen Link (keinen Linktext oder andere Arguemente)
+  .[grep(".html",.)] %>% # nur welche die auf HTML enden
+  paste0("https://www.bundeswahlleiter.de/bundestagswahlen/2017/ergebnisse/",.) #abschließend noch den Rest davor
+
+bl_url_list <- html_nodes(webpage, '.linklist') %>% 
+  html_nodes('a') %>% # alle Knoten die Links sind
+  html_text()
+
+bl_url_list
+
+### ALTERNATIV über children
+
+html_nodes(webpage, '.linklist') %>% 
+  .[2] %>% 
+  html_children() %>% 
+  html_children() %>% 
+  html_attr("href")
+
+```
+
+
+
+
+
+
+
+

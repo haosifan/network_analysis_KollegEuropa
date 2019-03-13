@@ -1,0 +1,531 @@
+---
+title: "Kolleg Europa - Social Network Analysis"
+subtitle: "Einführung in die statistische Programmiersprache R"
+author: "Stefan Haußner"
+date: "20. März 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(gapminder)
+```
+
+*Disclaimer: Zum Teil basiert dieses Script auf dem Datacamp-Kurs  ["Working with Data in the Tidyverse"](https://campus.datacamp.com/courses/working-with-data-in-the-tidyverse/tidy-your-data?ex=1)*
+
+# The Tidyverse
+
+[](https://rviews.rstudio.com/2017/06/08/what-is-the-tidyverse/)
+
+The tidyverse is a coherent system of packages for data manipulation, exploration and visualization that share a common design philosophy. These were mostly developed by Hadley Wickham himself, but they are now being expanded by several contributors. Tidyverse packages are intended to make statisticians and data scientists more productive by guiding them through workflows that facilitate communication, and result in reproducible work products. Fundamentally, the tidyverse is about the connections between the tools that make the workflow possible.
+
+![](tidyverse_overview.png)
+
+## the dplyr-package and the grammar behind
+
+### pipes in R
+
+Statt komplizierte Klammerstrukturen zu nutzen oder nach jedem Schritt das Objekt neu abzuspeichern, ist es durch das ```magittr```-package möglich sogenannte ```pipes``` zu nutzen. Durch das ```dplyr```-Paket wurden ```pipes``` zu einer besonderen Innovation und ändern den Workflow in R. Oft wird dadurch der Code sehr viel einfacher lesbar. Durch eine pipe (```%>%```) lassen sich Ergebnisse aus dem einen Befehl, direkt in den nächsten "überführen".
+
+#### Beispiel
+
+```{r}
+s1 <- 3+6
+s2 <- exp(s1)
+s3 <- round(s2, 3)
+s4 <- s3 > 1000
+
+# oder
+
+t <- round(exp((3+6)),3) > 1000
+
+# unkomplizierter
+
+u <- (3+6) %>% 
+  exp() %>% 
+  round(.,3) > 1000
+
+```
+
+
+### the filter verb
+
+logical operators "==" nicht "="
+aus gapminder wird nichts entfernt, sondern der filter nur onscreen ausgegeben
+Inhalt mit Text mit Anführungsstrichen
+
+Multiple conditions mit Komma
+
+```{r}
+gapminder[gapminder$year==2007, ]
+
+gapminder %>% 
+  filter(year == 2007)
+
+gapminder %>% 
+  filter(country == "United States")
+
+gapminder %>% 
+  filter(year == 2007, country == "United States")
+```
+
+***
+
+### the select verb
+
+Select specific variables (columns) by name. No need for complicated counting or concatenating by with c() and square brackets. You can select ranges of variables using ":". Use the "-" to drop columns. You can change the order, in which the variables appear in the data frame. You can also select and renaming variables at the same time.
+
+
+
+```{r}
+gapminder
+
+gapminder %>% 
+  select(country, year, lifeExp)
+
+gapminder %>% 
+  select(country, lifeExp:gdpPercap)
+
+gapminder %>% 
+  select(-continent)
+
+gapminder %>% 
+  select(continent, country, year:gdpPercap) #switch continent and country
+
+gapminder %>% 
+  select(kontinent = continent, land = country, jahr = year)
+```
+
+
+### the arrange verb
+
+```{r}
+gapminder %>% 
+  arrange(gdpPercap)
+
+gapminder %>% 
+  arrange(desc(gdpPercap))
+
+gapminder %>% 
+  arrange(year, gdpPercap)
+```
+
+***
+
+### the mutate verb
+
+existing and new variables
+
+```{r}
+gapminder %>% 
+  mutate(pop_mio = pop / 1000000) %>% 
+  mutate(gdp = gdpPercap * pop)
+```
+
+total GDP
+now spaces only one word
+
+```{r}
+gapminder %>% 
+  mutate(gdp = gdpPercap * pop) %>% 
+  arrange(gdp)
+```
+
+
+### Combining with pipes
+
+...
+
+### Assigning new "objects"
+
+Natürlich kann man die kompletten Ketten auch in einem neuen Objekt sichern.
+
+```{r}
+
+gapminder2 <- gapminder %>% 
+  mutate(gdp = gdpPercap * pop) %>% 
+  arrange(gdp)
+gapminder2
+```
+
+
+### the summarize verb
+
+many rows into one
+
+```{r}
+gapminder %>% 
+  summarize(meanLifeExp = mean(lifeExp))
+```
+
+"mean()" ist eine built-in Funktion. Hier logischerweise der Mittelwert.
+R hat einige solcher built-in Funktionen, die man sich nicht selber schreiben muss
+
+Beispiele bringen:
+
+* mean()
+* sum()
+* median()
+* min()
+* max()
+
+Eigentlich nat?rlich keinen Sinn den Mittelwert ?ber alles zu machen
+
+
+```{r}
+gapminder %>%
+  filter(year == 2007) %>%
+  summarise(meanLifeExp = mean(lifeExp))
+```
+
+mehrere Spalten (Variablen gleichzeitig)
+
+```{r}
+gapminder %>%
+  filter(year == 2007) %>%
+  summarise(meanLifeExp = mean(lifeExp),
+            totalPop = sum(as.numeric(pop)))
+```
+
+### the group_by verb
+
+Ich möchte nicht die LifeExpectancy oder Population über alle Länder und alle Zeitpunkte
+Daher gruppiere ich den Datensatz in verschiedene Teile, basierend auf der Variable "year"
+
+```{r echo = T, results = "hide", warning=F}
+gapminder %>%
+  group_by(year) %>%
+  summarize(meanLifeExp = mean(lifeExp),
+            totalPop = sum(pop))
+```
+Produziert bei mir Fehler (integer overflow), deshalb wie in Fehlermeldung vorgeschlagen "as.integer". Innerhalb der Funktionen, lassen sich also wieder weitere Funktionen verschachteln
+
+```{r}
+gapminder_3 <- gapminder %>%
+  group_by(year) %>%
+  summarize(meanLifeExp = mean(lifeExp),
+            totalPop = sum(as.integer(pop)))
+```
+
+Jetzt finde ich das auch nicht besonders aussagekräftig. Bei dem Durchschnitt sind alle Länder mit drin.
+Deshalb filtern nur für das Jahr 2007 und anschließend nach Kontinent.
+
+```{r}
+gapminder %>%
+  filter(year == 2007) %>%
+  group_by(continent) %>%
+  summarize(meanLifeExp = mean(lifeExp),
+            totalPop = sum(as.numeric(pop)))
+```
+
+Jetzt wollen wir aber jeweils den Durchschnitt für alle Jahr und alle Kontinente.
+group_by lässt sich auch mit mehreren Variablen nutzen. Gruppierung nach mehreren Variablen.
+
+
+```{r}
+gapminder %>%
+  group_by(year, continent) %>%
+  summarize(totalPop = sum(as.integer(pop)),
+            meanLifeExp = mean(lifeExp))
+```
+
+Nach summarise ist die Gruppierung aufgehoben. 
+
+```{r}
+gapminder %>%
+  group_by(year, continent) %>%
+  summarize(totalPop = sum(as.integer(pop)),
+            meanLifeExp = mean(lifeExp)) %>% 
+  arrange(desc(totalPop))
+```
+
+Wenn ich aber zB arrange direkt nach group_by ausführe, dann werden die Gruppen weiter berücksichtigt -> Sortierung innerhalb von Gruppen.
+
+```{r}
+gapminder %>%
+  group_by(year, continent) %>%
+  arrange(desc(pop))
+```
+
+Durch anschließen von ungroup() kann ich die Gruppierung wieder aufheben.
+
+### Joins - Merging different datasets into one
+
+* left_join(x, y): Return all rows from x, and all columns from x and y. If there are multiple matches between x and y, all combination of the matches are returned. This is a mutating join.
+
+![](../dplyr_joins_gifs/left_join.gif)
+
+* right_join(x, y): Return all rows from y, and all columns from x and y. Rows in y with no match in x will have NA values in the new columns. If there are multiple matches between x and y, all combinations of the matches are returned.
+
+![](../dplyr_joins_gifs/right_join.gif)
+
+* full_join(x, y): Return all rows and all columns from both x and y. Where there are not matching values, returns NA for the one missing. This is a mutating join.
+
+![](../dplyr_joins_gifs/full_join.gif)
+
+* inner_join(x, y): Return all rows from x where there are matching values in y, and all columns from x and y. If there are multiple matches between x and y, all combination of the matches are returned. This is a mutating join.
+
+![](../dplyr_joins_gifs/inner_join.gif)
+
+* semi_join(x, y): Return all rows from x where there are matching values in y, keeping just columns from x. A semi join differs from an inner join because an inner join will return one row of x for each matching row of y, where a semi join will never duplicate rows of x. This is a filtering join.
+
+![](../dplyr_joins_gifs/semi_join.gif)
+
+* anti_join(x, y): Return all rows from x where there are not matching values in y, keeping just columns from x. This is a filtering join.
+
+![](../dplyr_joins_gifs/anti_join.gif)
+
+## Visualising with ggplot2
+
+```{r}
+library(ggplot2)
+```
+
+ggplot2 von Hadley Wickham
+auch hier eine eigene "Grammatik"
+Modular aufgebaut (Bedeutet was? - add a layer)
+
+```{r echo=FALSE}
+gapminder_2007 <- gapminder %>% filter(year==2007)
+```
+
+Ein neuer Datensatz wurde durch erstellt: gapminder_2007. Durch die filter-Funktion enthält er nur die Daten aus dem Jahr 2007.
+
+```{r}
+gapminder_2007
+```
+
+
+```{r}
+ggplot(gapminder_2007, aes(x = gdpPercap, y = lifeExp))
+
+ggplot(gapminder_2007, aes(x = gdpPercap, y = lifeExp))+
+  geom_point()
+
+ggplot(gapminder_2007, aes(x = gdpPercap, y = lifeExp))+
+  geom_point()+
+  geom_line()
+
+ggplot(gapminder_2007, aes(x = gdpPercap, y = lifeExp))+
+  geom_point()+
+  geom_line()+
+  geom_smooth(method = 'lm')
+```
+
+
+### Add log scales
+
+```{r}
+ggplot(gapminder_2007, aes(x = gdpPercap, y = lifeExp))+
+  geom_point()
+```
+
+Problem: Viele Länder am linken Rand, mit sehr geringem gdpPercap
+Lösungsmöglichkeit: Log Scale (Modularer Aufbau - Hinzuf?gen eines "Moduls" log_scale)
+
+```{r}
+ggplot(gapminder_2007, aes(x = gdpPercap, y = lifeExp))+
+  geom_point()+
+  scale_x_log10()
+```
+
+```{r}
+ggplot(gapminder_2007, aes(x = pop, y = gdpPercap))+
+  geom_point()+
+  scale_x_log10()+
+  scale_y_log10()
+```
+
+### Adding trend lines
+
+```{r}
+ggplot(gapminder_2007, aes(x = gdpPercap, y = lifeExp))+
+  geom_point()+
+  scale_x_log10()+
+  geom_smooth()
+```
+
+
+### Additional aesthetics
+
+Bisher hatten wir nur x und y
+Mit aesthetics (aes) lassen sich aber auch noch mehr Merkmale kontrollieren
+Farbe, Gruppen, Punktgröße etc.
+
+Automatisches Hinzuf?gen der Legende
+
+
+```{r}
+ggplot(gapminder_2007) +
+  geom_point(aes(x = gdpPercap, y = lifeExp, color = continent)) +
+  scale_x_log10()
+```
+
+
+Notes: Zweite Zeile bei size, macht dem Code nichts aus. Nach Kommata wird sogar einigermaßen schön eingerückt
+
+```{r}
+ggplot(gapminder_2007, aes(x = gdpPercap, y = lifeExp, 
+                           color = continent, 
+                           size = pop)) +
+  geom_point() +
+  scale_x_log10()
+```
+
+
+### Faceting
+
+Unterteilung in "Untergrafiken", unterteilt nach einer bestimmten Kategorie
+
+```{r}
+ggplot(gapminder_2007, aes(x = gdpPercap, y = lifeExp)) +
+  geom_point() +
+  scale_x_log10() +
+  facet_wrap(~ continent)
+```
+
+
+```{r}
+ggplot(gapminder, aes(x = gdpPercap, y = lifeExp, color = lifeExp, size = pop))+
+  geom_point()+
+  scale_x_log10()+
+  facet_wrap(~ year)+
+  scale_color_viridis()
+```
+
+
+Neues Objekt (Datensatz speichern): gapminder gruppert nach Jahr und die Population und durchschnittliche Lebenserwartung pro Jahr zusammengefasst.
+
+```{r}
+by_year <- gapminder %>%
+  group_by(year) %>%
+  summarize(totalPop = sum(as.integer(pop)),
+            meanLifeExp = mean(lifeExp))
+
+by_year
+```
+
+```{r}
+ggplot(by_year, aes(x = year, y = totalPop)) +
+  geom_point()
+```
+
+Hier enthält die y-Achse nicht die 0 (Meistens gro?er Fehler). Wir müssen deshalb die Skala bearbeiten und anpassen. Wieder kann dies durch ein neues "Modul" passieren.
+
+```{r}
+ggplot(by_year, aes(x = year, y = totalPop)) +
+  geom_point() +
+  expand_limits(y = 0)
+```
+
+
+Neues Objekt (Datensatz) mit einer Gruppierung nach Year und continent.
+
+```{r}
+by_year_continent <- gapminder %>%
+  group_by(year, continent) %>%
+  summarize(totalPop = sum(as.numeric(pop)),
+            meanLifeExp = mean(lifeExp))
+
+by_year_continent
+```
+
+Durch Farbe können wir wieder die verschiedenen Kontinenten voneinander trennen.
+
+```{r}
+ggplot(by_year_continent, aes(x = year, y = totalPop, color = continent)) +
+  geom_point() +
+  expand_limits(y = 0)+
+  scale_color_viridis(discrete = T)
+```
+
+
+Bisher nur "Scatterplots", mit geom_point(). Jede Menge andere Varianten ebenso möglich.
+Wahl des Graphen abhängig von dem Skalenniveau der Daten und dem Ziel, was die Grafik zeigen soll.
+
+### Line Plots
+
+```{r}
+ggplot(by_year_continent, aes(x = year, y = meanLifeExp, color = continent)) +
+  geom_point() +
+  expand_limits(y = 0)
+
+ggplot(by_year_continent, aes(x = year, y = meanLifeExp, color = continent)) +
+  geom_line() +
+  expand_limits(y = 0)
+```
+
+Man kann aber auch mehrere Graphtypen miteinander verbinden. Wieder durch die modulare "Grammatik" des Pakets.
+
+```{r}
+ggplot(by_year_continent, aes(x = year, y = meanLifeExp, color = continent)) +
+  geom_line() +
+  geom_point() +
+  expand_limits(y = 0)
+```
+
+### Barplots
+
+Neuer Datensatz mit der durchschnittlichen Lebenserwartung pro Kontinent für das Jahr 2007
+
+```{r}
+by_continent <- gapminder %>%
+  filter(year == 2007) %>%
+  group_by(continent) %>%
+  summarize(meanLifeExp = mean(lifeExp))
+
+by_continent
+```
+
+Unerwarterweise nicht geom_bar. Das gibts aber auch.
+Hier geom_col. Bei geom_bar könnte man das gleiche Ergebnis erreichen, müsste aber noch zusätzliche Argumente anf?gen.
+
+```{r}
+ggplot(by_continent, aes(x = continent, y = meanLifeExp)) +
+  geom_col()
+```
+
+
+### Histogram
+
+Nur ein "aesthetic". Die x-Variable. Die Anzahl pro Balken rechnet R dann selber aus. Auch die Breite der Balken wir selbst optimiert. Diese kann man aber anpassen.
+
+```{r}
+ggplot(gapminder_2007, aes(x = lifeExp)) +
+  geom_histogram()
+
+ggplot(gapminder_2007, aes(x = lifeExp)) +
+  geom_histogram(binwidth = 5)
+```
+
+### Boxplots
+
+Compare distributions across continents.
+
+Black Line: Median,
+Box: 25% and 75%. Half of the distribution inside the box.
+whiskers: Additional countries
+Dots: Outliers (out of 95%)
+
+```{r}
+ggplot(gapminder_2007, aes(x = continent, y = lifeExp)) +
+  geom_point()
+
+ggplot(gapminder_2007, aes(x = continent, y = lifeExp)) +
+  geom_boxplot()
+```
+
+### Labels
+
+```{r}
+ggplot(gapminder_2007, aes(x = continent, y = gdpPercap)) +
+  geom_boxplot() +
+  scale_y_log10() + 
+  labs(title = "Comparing GDP per capita across continents",
+       x = "Continent",
+       y = "GDP per capita")
+```
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

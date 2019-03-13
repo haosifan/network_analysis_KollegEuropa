@@ -1,0 +1,260 @@
+---
+title: "Kolleg Europa - Social Network Analysis"
+subtitle: "Einführung in die statistische Programmiersprache R"
+author: "Stefan Haussner"
+date: "20. März 2019"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(gapminder)
+library(viridis)
+```
+
+
+# Introduction to R
+
+Eine Übersicht über gängige Basis-Funktionen bietet der BaseR-CheatSheet: http://github.com/rstudio/cheatsheets/raw/master/base-r.pdf
+
+## R as a calculator
+
+```{r}
+2+2
+4*3
+12.5/pi
+3^5
+2+3*6
+(2+3)*6
+```
+
+## In R everything is an object
+
+```{r}
+x <- 5
+y <- 12
+x+y
+x*y
+z <- x+y
+z
+```
+
+## Vectors
+
+
+```{r}
+l1 <- c(x^1,x^2,x^3,x^4,x^5)
+l2 <- c(y*1,y*2,y*3,y*4,y*5)
+
+l1 + l2
+```
+
+## Functions
+
+Eine ```Funktion``` haben wir im letzten Codeblock bereits gesehen. "c()"
+Funktionen sind bereits vorgefertigte "Miniprogramme", manchmal aber auch sehr einfache, die mit einem bestimmten Objekt etwas bestimmtes tun.
+
+Bsp: c(): Concatenate = Verknüpfen: Die Elemente innerhalb der Klammer, werden miteinander kombiniert und zu einem Vektor zusammengefasst.
+
+Andere Beispiele sind bestimmte mathematische Funktionen, wie Mittelwert oder Standardabweichung. Beinahe alles in R wird durch Funktionen erledigt. Eine Funktion ist immer zusammen gesetzt aus dem Namen und den Eingabeparametern innerhalb von Klammern. Gibt es keine Eingabeparameter wird die Klammer leer - aber nicht weg - gelassen.
+
+Der Aufbau der Funktionen ist immer gleich: ```Funktionsname(argument1, argument2, ...)```. Es können mehrere Argumente vorgesehen sein, müssen aber nicht. Argumente sind immer durch Kommata getrennt. Gibt man die Argumente in der Reihenfolge ein, in der sie die Funktion vorsieht, kann man den Argumentnamen weglassen. Zu Anfang ist es aber häufig sinnvoller, den Argumentnamen mit aufzuschreiben. Ein Beispiel das identische Ergebnisse bringt, ist die unterschiedliche Verwendung von der ```round```-Funktion im nächsten Codeblock.
+
+```{r}
+summary(l1)
+var(l1)
+sd(l1)
+sum(l1)
+mean(l2)
+
+round(x = 3.63545234123, digits = 4)
+round(3.63545234123, digits = 4)
+round(3.63545234123, 4)
+
+plot(l1)
+plot(c(5,25,2123,123,5345),l2)
+```
+
+In R können auch ganz einfach eigene Funktionen geschrieben werden. Hilfe gibt es hier: https://www.datacamp.com/community/tutorials/functions-in-r-a-tutorial
+Zu allen Funktionen gibt es eine Hilfe, welche die möglichen Optionen (```arguments```) und die grundsätzliche Funktionsweise der Funktion beschreibt. ACHTUNG: Ohne Klammern hinter der Funktion, über die man Infos haben will.
+
+```{r eval = F}
+help(sd)
+?sd
+?summary
+```
+
+## Only numbers?
+
+Bisher hatten wir nur Zahlen in unseren Beispielen. In R ist es aber auch möglich (und meistens unproblematisch) mit anderen Datentypen - wie bspw. Text oder Ja/Nein-Zuständen - zu arbeiten.
+
+### Text
+
+Inhalte mit Text wird meist in Anführungsstriche oder Hochkommata gesetzt. Die ```Klasse``` dieses Objekts ist dann automatisch ```character```.
+```{r}
+txt <- "Das ist ein Text"
+txt
+class(txt)
+```
+
+### Boolean/Logical
+
+Manchmal bietet es sich an nur "Wahr" oder "Falsch" als eigenen Datentypen zu nutzen. Die Schlüsselwörter hier sind ```TRUE``` und ```FALSE```. Immer das ganze Wort großgeschrieben. Oftmals wird diese Klasse dafür genutzt, Zustände abzufragen, bspw. ob etwas größer ist, ob der Inhalt übereinstimmt etc:
+
+```{r}
+WAHRODERFALSCH <- FALSE
+class(WAHRODERFALSCH)
+isTRUE(WAHRODERFALSCH)
+3 > 5
+ist3groesser5 <- 3 > 5
+"Ist das ein Text" == txt
+```
+
+### Integer und Float-Variablen
+
+Zurück zu Zahlen: Bei Zahlen in R gibt es Unterschiede, ob die Zahl eine "Ganzzahl" (```integer```) oder eine Zahl mit Nachkommastellen (```numeric```) ist. Normalerweise ist der Unterschied in R egal und man kann mit beiden Typen identisch arbeiten.  Es kann aber Fälle geben, in denen man den Typ bewusst ändern muss.
+
+```{r}
+is.integer(3.541)
+is.integer(3)
+class(3)
+integer3 <- as.integer(3)
+is.integer(integer3)
+class(3.654)
+```
+
+### Factor
+
+Bei der Arbeit mit Surveys kommen außerdem häufig noch ```factors``` vor. Faktoren werden verwendet, um kategorische Daten darzustellen. Faktoren können geordnet oder ungeordnet sein und sind eine wichtige Klasse für statistische Analysen und zum Plotten. Sie sind die klassische Darstellungsweise von ordinalen Datentypen.
+
+Faktoren werden als Ganzzahlen gespeichert und diesen eindeutigen Ganzzahlen sind Beschriftungen zugeordnet. Während Faktoren wie Zeichenvektoren aussehen (und sich oft verhalten), sind sie tatsächlich in Wirklichkeit ganze Zahlen. Manchmal fährt das zu Problemen, wenn man sie wie *strings/character* behandelt.
+
+```{r error = TRUE}
+education <- factor(c("low", "high", "medium", "high", "low", "medium", "high"))
+levels(education)
+education
+education <- factor(education, levels = c("low", "medium", "high"))
+levels(education)
+
+min(education) # doesn't work
+
+education <- factor(education, levels = c("low", "medium", "high"), ordered = TRUE)
+levels(education)
+
+min(education) # works!
+```
+
+### verschiedene Datentypen in einer Tabelle
+
+Fügt man unterschiedliche Datentypen zusammen, so ist der Unterschied zwischen einer ```matrix``` und einem ```data.frame``` wichtig (siehe nächstes Kapitel). Während in einer matrix nur Elemente des gleichen Datentyps vorhanden sein können, sind bei einem data.frame auch unterschiedliche erlaubt.
+
+```{r}
+
+numbers <- c(1,2,31,43,5,16)
+txt <- c("a","b","oma","uni","zwei W?rter","z")
+logical <- c(FALSE,TRUE,FALSE,FALSE,TRUE,FALSE)
+factors <- factor(c("low", "high", "medium", "high", "low", "medium"))
+
+tabelle <- cbind(numbers,txt,logical,factors) 
+## zum verbinden von Spalten (column-bind); zum verbinden von Zeilen rbind() (row-bind)
+tabelle #Man sieht, alle Datentypen wurden zu "Texten" gemacht. Anf?hrungsstriche sind um die Werte herum.
+class(tabelle) # R hat die Tabelle automatisch zur Matrix gemacht und deshalb alle Datentypen "gleich" gemacht.
+
+tabelle2 <- data.frame(numbers,txt,logical,factors, stringsAsFactors = FALSE)
+tabelle2
+class(tabelle2)
+class(tabelle2$txt)
+class(tabelle2$numbers)
+
+# Im Data.frame, sind alle Datentypen erhalten.
+
+```
+
+## Data Frames
+
+Normalerweise haben wir als Datenwissenschaftler aber selten einzelne Rechnungen oder Vektoren, sondern Tabellen mit Zeilen als Beobachtungen und Spalten als Variablen. Diese werden in R als ```Data Frames``` dargestellt (oder als Matrix, aber mit dataframes ist es meistens einfacher zu arbeiten).
+
+```{r}
+data.frame(l1,l2)
+df <- data.frame(l1,l2)
+df
+```
+
+Einzelne Elemente des ```df``` lassen sich über eckige Klammern hinter dem Objektnamen auswählen. Dabei ist die erste Zahl die Nummer der Zeile und die zweite Zahl die Nummer der Spalte. Durch weglassen einer Zahl, wird entweder die ganze Zeile oder die ganze Spalte ausgegeben.
+
+```{r}
+df[3,2]
+df[ ,2]
+df[3, ]
+df[4,5]
+```
+
+Variablen (Spalten) lassen sich auch durch den Namen anwählen, indem hinter den Objektnamen ein ```$``` geschrieben wird. RStudio schlägt einem dann meist sogar eine Liste vor, aus der man auswählen kann. Wiederrum kann man durch eckige Klammern, einzelne oder mehrere Elemente auswählen.
+
+```{r}
+summary(df)
+summary(df$l1)
+df$l2
+
+df$l1[3]
+df$l2[4]
+df$l1[1:3]
+df$l1[1:2]
+df$l1[-c(3,5)]
+```
+
+Durch logische Operatoren lassen sich so bestimmte Zeilen suchen/ausschließen. So könnte man beispielsweise einen Datensatz mit mehreren Ländern so bearbeiten, dass am Ende nur ein Land heraus käme. Oder nur Menschen über 55 Jahre im Datensatz enthalten sind etc.
+
+```{r}
+df
+df[df$l1>100, ]
+```
+*Gesprochen: Der Datensatz df und alle Spalten (Hinter dem Komma ist leer). Aber nur die Zeilen, wo in Spalte 1 (l1) Werte über 100 stehen.*
+
+## Daten einlesen
+
+Die einfachste Art Daten einzulesen ist, wenn sie als einfach "Text-Datei" vorliegen. Beispielsweise .CSV (comma-separated-values), oder anderweitige Formate mit einem eindeutigen Symbol als Trennzeichen für Spalten.
+
+Aber auch andere Formate lassen sich in R einlesen, nur braucht man hierzu meistens zusätzliche Pakete und Funktionen.
+
+### Aus csv-Dateien
+
+Im amerikanischen Raum wird die csv-Datei mit Kommata als Spaltentrennzeichen und dem Punkt als Dezimalzeichen bei Zahlen verwendet. Im europäischen Raum wird meistens das Semikolon als Spaltentrennzeichen und das Komma als Dezimalzeichen genutzt. In R wurden deshalb 2 Arten von CSV-Einlese-Funktionen implementiert. read.csv für den amerikanischen Raum und read.csv2 für den europäischen. Die Funktionen lassen sich aber über die Optionen (```arguments```) anpassen.
+
+```{r}
+read.csv(file = "datensatz_grades.csv", sep = ";", dec = ",")
+read.csv2(file = "datensatz_grades.csv")
+daten <- read.csv2(file = "datensatz_grades.csv")
+```
+
+### Dateien aus Stata oder SPSS
+
+Daten von anderen statistischen Sprachen lassen sich meist mit dem Paket ```foreign``` einlesen und auch in diesen Formaten abspeichern.
+
+```{r}
+#install.packages(c("openxlsx","foreign"))
+library(foreign)
+
+read.spss("datensatz_grades.sav")
+read.dta("datensatz_grades.dta")
+```
+
+### Aus Excel-Dateien
+
+Zun?chst einmal ist es möglich aus Excel heraus auch CSV-Dateien zu speichern. Arbeitet man also selber erst mit Excel und will seine Daten dann in R einlesen, ist es meistens einfacher, die Datei direkt als CSV zu speichern. Hat man aber eine xlsx-Datei so kann man diese mit den Paketen ```xlsx``` oder ```openxlsx``` einlesen.
+
+```{r}
+library(openxlsx)
+grades <- read.xlsx('datensatz_grades.xlsx', sheet = 1)
+grades
+```
+
+
+
+
+
+
