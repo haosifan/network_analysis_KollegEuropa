@@ -4,6 +4,12 @@ Dieses Projekt ist ein Workshop zur sozialen Netzwerkanalyse. Vorbereitet wurde 
 
 Speziell dieses abschließende Beispiel ist work-in-progress und stellt das Projekt der Arbeitsgruppe "Europa politisch denken" des Kollegs dar. In diesem Skript sind lediglich erste Analysen und Einblicke in das Netzwerk vorgestellt.
 
+## benötigte R-Pakete
+
+```
+install.packages("igraph","gridExtra","tidyverse","openxlsx","janitor","countrycode","dplyr","threejs","DT","reshape2","gapminder","viridis","knitr")
+```
+
 ## Inhalte
 
 1. Einführung in R (script_R_introduction.Rmd)

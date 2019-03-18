@@ -19,7 +19,7 @@ library(viridis)
 
 # Introduction to R
 
-Eine Übersicht über gängige Basis-Funktionen bietet der BaseR-CheatSheet: http://github.com/rstudio/cheatsheets/raw/master/base-r.pdf
+Eine Übersicht über gängige Basis-Funktionen bietet der BaseR-CheatSheet: [http://github.com/rstudio/cheatsheets/raw/master/base-r.pdf](http://github.com/rstudio/cheatsheets/raw/master/base-r.pdf)
 
 ## R as a calculator
 
@@ -55,7 +55,7 @@ l1 + l2
 
 ## Functions
 
-Eine ```Funktion``` haben wir im letzten Codeblock bereits gesehen. "c()"
+Eine ```Funktion``` haben wir im letzten Codeblock bereits gesehen. *c()*
 Funktionen sind bereits vorgefertigte "Miniprogramme", manchmal aber auch sehr einfache, die mit einem bestimmten Objekt etwas bestimmtes tun.
 
 Bsp: c(): Concatenate = Verknüpfen: Die Elemente innerhalb der Klammer, werden miteinander kombiniert und zu einem Vektor zusammengefasst.
@@ -79,7 +79,7 @@ plot(l1)
 plot(c(5,25,2123,123,5345),l2)
 ```
 
-In R können auch ganz einfach eigene Funktionen geschrieben werden. Hilfe gibt es hier: https://www.datacamp.com/community/tutorials/functions-in-r-a-tutorial
+In R können auch ganz einfach eigene Funktionen geschrieben werden. Hilfe gibt es hier: [https://www.datacamp.com/community/tutorials/functions-in-r-a-tutorial](https://www.datacamp.com/community/tutorials/functions-in-r-a-tutorial)
 Zu allen Funktionen gibt es eine Hilfe, welche die möglichen Optionen (```arguments```) und die grundsätzliche Funktionsweise der Funktion beschreibt. ACHTUNG: Ohne Klammern hinter der Funktion, über die man Infos haben will.
 
 ```{r eval = F}
@@ -155,13 +155,13 @@ Fügt man unterschiedliche Datentypen zusammen, so ist der Unterschied zwischen 
 ```{r}
 
 numbers <- c(1,2,31,43,5,16)
-txt <- c("a","b","oma","uni","zwei W?rter","z")
+txt <- c("a","b","oma","uni","zwei Wörter","z")
 logical <- c(FALSE,TRUE,FALSE,FALSE,TRUE,FALSE)
 factors <- factor(c("low", "high", "medium", "high", "low", "medium"))
 
 tabelle <- cbind(numbers,txt,logical,factors) 
 ## zum verbinden von Spalten (column-bind); zum verbinden von Zeilen rbind() (row-bind)
-tabelle #Man sieht, alle Datentypen wurden zu "Texten" gemacht. Anf?hrungsstriche sind um die Werte herum.
+tabelle #Man sieht, alle Datentypen wurden zu "Texten" gemacht. Anführungsstriche sind um die Werte herum.
 class(tabelle) # R hat die Tabelle automatisch zur Matrix gemacht und deshalb alle Datentypen "gleich" gemacht.
 
 tabelle2 <- data.frame(numbers,txt,logical,factors, stringsAsFactors = FALSE)
@@ -169,9 +169,6 @@ tabelle2
 class(tabelle2)
 class(tabelle2$txt)
 class(tabelle2$numbers)
-
-# Im Data.frame, sind alle Datentypen erhalten.
-
 ```
 
 ## Data Frames
@@ -226,9 +223,9 @@ Aber auch andere Formate lassen sich in R einlesen, nur braucht man hierzu meist
 Im amerikanischen Raum wird die csv-Datei mit Kommata als Spaltentrennzeichen und dem Punkt als Dezimalzeichen bei Zahlen verwendet. Im europäischen Raum wird meistens das Semikolon als Spaltentrennzeichen und das Komma als Dezimalzeichen genutzt. In R wurden deshalb 2 Arten von CSV-Einlese-Funktionen implementiert. read.csv für den amerikanischen Raum und read.csv2 für den europäischen. Die Funktionen lassen sich aber über die Optionen (```arguments```) anpassen.
 
 ```{r}
-read.csv(file = "datensatz_grades.csv", sep = ";", dec = ",")
-read.csv2(file = "datensatz_grades.csv")
-daten <- read.csv2(file = "datensatz_grades.csv")
+read.csv(file = "../data/datensatz_grades.csv", sep = ";", dec = ",")
+read.csv2(file = "../data/datensatz_grades.csv")
+daten <- read.csv2(file = "../data/datensatz_grades.csv")
 ```
 
 ### Dateien aus Stata oder SPSS
@@ -239,8 +236,8 @@ Daten von anderen statistischen Sprachen lassen sich meist mit dem Paket ```fore
 #install.packages(c("openxlsx","foreign"))
 library(foreign)
 
-read.spss("datensatz_grades.sav")
-read.dta("datensatz_grades.dta")
+read.spss("../data/datensatz_grades.sav")
+read.dta("../data/datensatz_grades.dta")
 ```
 
 ### Aus Excel-Dateien
@@ -249,7 +246,7 @@ Zun?chst einmal ist es möglich aus Excel heraus auch CSV-Dateien zu speichern. 
 
 ```{r}
 library(openxlsx)
-grades <- read.xlsx('datensatz_grades.xlsx', sheet = 1)
+grades <- read.xlsx('../data/datensatz_grades.xlsx', sheet = 1)
 grades
 ```
 
