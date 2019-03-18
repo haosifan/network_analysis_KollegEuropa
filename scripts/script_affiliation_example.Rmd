@@ -3,7 +3,10 @@ title: "Kolleg Europa - Social Network Analysis"
 subtitle: "Beispiel: Affiliationsnetzwerke"
 author: "Stefan Haussner"
 date: "20. März 2019"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
 ---
 
 ```{r setup, include=FALSE}

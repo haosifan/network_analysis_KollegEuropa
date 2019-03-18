@@ -1,8 +1,11 @@
 ---
 title: "Kolleg Europa - Network Analysis"
 author: "Einführung in die Netzwerkanalyse"
-date: "11 März 2019"
-output: html_document
+date: "20. März 2019"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
 ---
 
 ```{r setup, include=FALSE}

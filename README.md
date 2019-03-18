@@ -1,6 +1,6 @@
 # Workshop zur sozialen Netzwerkanalyse - Kolleg Europa
 
-Dieses Projekt ist ein Workshop zur sozialen Netzwerkanalyse. Vorbereitet wurde er für das Kolleg Europa (Prag, 20.3.2019) der Studienstiftung des Deutschen Volkes. ![](https://www.studienstiftung.de/europa/)Der Workshop beinhaltet eine kurze Einführung in die statistische Programmiersprache R, eine optionale Einführung in die Pakete dplyr und ggplot2 aus dem tidyverse, eine Einführung in die Grundlagen der sozialen Netzwerkanalyse anhand des Pakets igraph, eine spezielle Einführung in die Unterklasse der Assoziationsnetzwerke/Two-Mode-Netzwerke und ein abschließendes konkretes Forschungsbeispiel anhand eines Netzwerk zur Reisediplomatie von EU-Staaten.
+Dieses Projekt ist ein Workshop zur sozialen Netzwerkanalyse. Vorbereitet wurde er für das Kolleg Europa (Prag, 20.3.2019) der Studienstiftung des Deutschen Volkes ![https://www.studienstiftung.de/europa/](https://www.studienstiftung.de/europa/). Der Workshop beinhaltet eine kurze Einführung in die statistische Programmiersprache R, eine optionale Einführung in die Pakete dplyr und ggplot2 aus dem tidyverse, eine Einführung in die Grundlagen der sozialen Netzwerkanalyse anhand des Pakets igraph, eine spezielle Einführung in die Unterklasse der Assoziationsnetzwerke/Two-Mode-Netzwerke und ein abschließendes konkretes Forschungsbeispiel anhand eines Netzwerks zur Reisediplomatie von EU-Staaten.
 
 Speziell dieses abschließende Beispiel ist work-in-progress und stellt das Projekt der Arbeitsgruppe "Europa politisch denken" des Kollegs dar. In diesem Skript sind lediglich erste Analysen und Einblicke in das Netzwerk vorgestellt.
 
@@ -21,7 +21,7 @@ Speziell dieses abschließende Beispiel ist work-in-progress und stellt das Proj
 		+ additional aesthetics
 		+ faceting
 		+ labels
-3. Einführung in die soziale Netzwerkanalyse
+3. Einführung in die soziale Netzwerkanalyse (script_sna_introduction.Rmd)
 	+ Formate für die Netzwerkanalyse
 		+ edge lists
 		+ adjancency matrix
@@ -34,11 +34,11 @@ Speziell dieses abschließende Beispiel ist work-in-progress und stellt das Proj
 		+ average path length
 	+ network randomizations
 	+ Netzwerkvisualisierung
-4. Two-Mode/affiliation-networks
+4. Two-Mode/affiliation-networks (script_affiliation_example.Rmd)
 	+ Affiliationsnetzwerke in igraph
 	+ Adaption der Funktionen für Inzidenzmatritzen
 	+ One-Mode-Projektionen des Two-Mode-Netzwerks
-5. Analyse des Reisediplomatie-Netzwerks 
+5. Analyse des Reisediplomatie-Netzwerks (script_analysis_reisediplomatie.Rmd)
 
 		
 ## Datensätze
@@ -46,11 +46,11 @@ Speziell dieses abschließende Beispiel ist work-in-progress und stellt das Proj
 **hwd**
 
 Der hwd-Datensatz enthält ein Affiliationsnetzwerk, mit dem die Technik verdeutlicht werden kann. hwd steht mutmaßlich für Hollywood Data: Schauspieler sind durch die Filme miteinander verbunden, in denen sie zusammen auftreten. Das hwd-Dataset ist ein zweigeteiltes Graph-Objekt von igraph. Die Daten stammen ursprünglich von IMDB (www.imdb.com). Der Datensatz enthält die zehn beliebtesten Filme (von IMBD-Nutzern bewertet) für jedes Jahr von 1999 bis 2014 und die ersten zehn Schauspieler, die auf der IMDB-Seite jedes Films aufgeführt sind. Zusätzlich zu den Film- und Schauspielernamen hat jeder Film das Jahr seiner Veröffentlichung, seine IMDB-Benutzerbewertung und die MPAA-Filmbewertung (d. H. G, PG, PG-13 und R) als Knoteneigenschaft gespeichert.
-Ursprünglich war der Datensatz im UserNetR-Paket zu finden. Da dieses Paket nicht mehr geupdated wird, wurde der Datensatz selber aus dem GitHub-Repo ![](https://github.com/DougLuke/UserNetR) geladen und hier lokal zur Verfügung gestellt.
+Ursprünglich war der Datensatz im UserNetR-Paket zu finden. Da dieses Paket nicht mehr geupdated wird, wurde der Datensatz selber aus dem GitHub-Repo ![https://github.com/DougLuke/UserNetR](https://github.com/DougLuke/UserNetR) geladen und hier lokal zur Verfügung gestellt.
 
 **gump**
 
-Zur Veranschaulichung der allgemeinen SNA nutzen wir das ```Forest Gump Network```: Each edge of the network indicates that those two characters were in at least one scene of the movie together. Therefore this network is undirected. Das Netzwerk ist Teil des Datacamp-Kurses Network Analysis in R und konnte über die Projektseite bezogen werden (![](https://www.datacamp.com/courses/network-analysis-in-r))
+Zur Veranschaulichung der allgemeinen SNA nutzen wir das ```Forest Gump Network```: Each edge of the network indicates that those two characters were in at least one scene of the movie together. Therefore this network is undirected. Das Netzwerk ist Teil des Datacamp-Kurses Network Analysis in R und konnte über die Projektseite bezogen werden ![https://www.datacamp.com/courses/network-analysis-in-r](https://www.datacamp.com/courses/network-analysis-in-r)
 
 **Reisediplomatie**
 
