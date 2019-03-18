@@ -1,6 +1,6 @@
 # Workshop zur sozialen Netzwerkanalyse - Kolleg Europa
 
-Dieses Projekt ist ein Workshop zur sozialen Netzwerkanalyse. Vorbereitet wurde er für das Kolleg Europa (Prag, 20.3.2019) der Studienstiftung des Deutschen Volkes. Der Workshop beinhaltet eine kurze Einführung in die statistische Programmiersprache R, eine optionale Einführung in die Pakete dplyr und ggplot2 aus dem tidyverse, eine Einführung in die Grundlagen der sozialen Netzwerkanalyse anhand des Pakets igraph, eine spezielle Einführung in die Unterklasse der Assoziationsnetzwerke/Two-Mode-Netzwerke und ein abschließendes konkretes Forschungsbeispiel anhand eines Netzwerk zur Reisediplomatie von EU-Staaten.
+Dieses Projekt ist ein Workshop zur sozialen Netzwerkanalyse. Vorbereitet wurde er für das Kolleg Europa (Prag, 20.3.2019) der Studienstiftung des Deutschen Volkes. ![](https://www.studienstiftung.de/europa/)Der Workshop beinhaltet eine kurze Einführung in die statistische Programmiersprache R, eine optionale Einführung in die Pakete dplyr und ggplot2 aus dem tidyverse, eine Einführung in die Grundlagen der sozialen Netzwerkanalyse anhand des Pakets igraph, eine spezielle Einführung in die Unterklasse der Assoziationsnetzwerke/Two-Mode-Netzwerke und ein abschließendes konkretes Forschungsbeispiel anhand eines Netzwerk zur Reisediplomatie von EU-Staaten.
 
 Speziell dieses abschließende Beispiel ist work-in-progress und stellt das Projekt der Arbeitsgruppe "Europa politisch denken" des Kollegs dar. In diesem Skript sind lediglich erste Analysen und Einblicke in das Netzwerk vorgestellt.
 
