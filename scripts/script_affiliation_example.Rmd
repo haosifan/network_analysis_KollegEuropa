@@ -17,6 +17,8 @@ library(knitr)
 library(gridExtra)
 ```
 
+ > Disclaimer: Der Teil des Workshops basiert auf Kapitel 9.3 aus Luke, Douglas A. (2015): A user's guide to network analysis with R.
+
 # Affiliationsnetzwerke
 
 Alle Netzwerke, die wir bisher untersucht haben, basieren auf direkten Verbindungen. Das heißt, die sozialen Bindungen, die die Akteure im sozialen Netzwerk verbinden, wurden durch Selbstbericht, direkte Beobachtung oder eine andere Art von Datenerhebung bestätigt. Sozialwissenschaftler sind jedoch häufig an Situationen interessiert, in denen diese sozialen Beziehungen nicht direkt beobachtet werden können.

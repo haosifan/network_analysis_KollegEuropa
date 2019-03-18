@@ -15,6 +15,9 @@ library(igraph)
 library(knitr)
 ```
 
+> Disclaimer: Dieser Teil des Workshops basiert zum Teil auf dem Datacamp-Kurs ["Network Analysis in R"](https://www.datacamp.com/courses/network-analysis-in-r)
+
+
 Zur Veranschaulichung nutzen wir das ```Forest Gump Network```: Each edge of the network indicates that those two characters were in at least one scene of the movie together. Therefore this network is undirected.
 
 ```{r, out.width = "50%", fig.align='center', echo = FALSE}

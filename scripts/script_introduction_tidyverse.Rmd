@@ -13,17 +13,18 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(gapminder)
+library(viridis)
 ```
 
-*Disclaimer: Zum Teil basiert dieses Script auf dem Datacamp-Kurs  ["Working with Data in the Tidyverse"](https://campus.datacamp.com/courses/working-with-data-in-the-tidyverse/tidy-your-data?ex=1)*
+> Disclaimer: Zum Teil basiert dieses Script auf dem Datacamp-Kurs ["Working with Data in the Tidyverse"](https://campus.datacamp.com/courses/working-with-data-in-the-tidyverse/tidy-your-data?ex=1)
 
 # The Tidyverse
 
-[](https://rviews.rstudio.com/2017/06/08/what-is-the-tidyverse/)
+[https://rviews.rstudio.com/2017/06/08/what-is-the-tidyverse/](https://rviews.rstudio.com/2017/06/08/what-is-the-tidyverse/)
 
 The tidyverse is a coherent system of packages for data manipulation, exploration and visualization that share a common design philosophy. These were mostly developed by Hadley Wickham himself, but they are now being expanded by several contributors. Tidyverse packages are intended to make statisticians and data scientists more productive by guiding them through workflows that facilitate communication, and result in reproducible work products. Fundamentally, the tidyverse is about the connections between the tools that make the workflow possible.
 
-![](tidyverse_overview.png)
+![](https://lsru.github.io/tv_course/img/01_tidyverse_data_science.png)
 
 ## the dplyr-package and the grammar behind
 
@@ -257,27 +258,27 @@ Durch anschließen von ungroup() kann ich die Gruppierung wieder aufheben.
 
 * left_join(x, y): Return all rows from x, and all columns from x and y. If there are multiple matches between x and y, all combination of the matches are returned. This is a mutating join.
 
-![](../dplyr_joins_gifs/left_join.gif)
+![](../material/dplyr_joins_gifs/left_join.gif)
 
 * right_join(x, y): Return all rows from y, and all columns from x and y. Rows in y with no match in x will have NA values in the new columns. If there are multiple matches between x and y, all combinations of the matches are returned.
 
-![](../dplyr_joins_gifs/right_join.gif)
+![](../material/dplyr_joins_gifs/right_join.gif)
 
 * full_join(x, y): Return all rows and all columns from both x and y. Where there are not matching values, returns NA for the one missing. This is a mutating join.
 
-![](../dplyr_joins_gifs/full_join.gif)
+![](../material/dplyr_joins_gifs/full_join.gif)
 
 * inner_join(x, y): Return all rows from x where there are matching values in y, and all columns from x and y. If there are multiple matches between x and y, all combination of the matches are returned. This is a mutating join.
 
-![](../dplyr_joins_gifs/inner_join.gif)
+![](../material/dplyr_joins_gifs/inner_join.gif)
 
 * semi_join(x, y): Return all rows from x where there are matching values in y, keeping just columns from x. A semi join differs from an inner join because an inner join will return one row of x for each matching row of y, where a semi join will never duplicate rows of x. This is a filtering join.
 
-![](../dplyr_joins_gifs/semi_join.gif)
+![](../material/dplyr_joins_gifs/semi_join.gif)
 
 * anti_join(x, y): Return all rows from x where there are not matching values in y, keeping just columns from x. This is a filtering join.
 
-![](../dplyr_joins_gifs/anti_join.gif)
+![](../material/dplyr_joins_gifs/anti_join.gif)
 
 ## Visualising with ggplot2
 
@@ -293,7 +294,7 @@ Modular aufgebaut (Bedeutet was? - add a layer)
 gapminder_2007 <- gapminder %>% filter(year==2007)
 ```
 
-Ein neuer Datensatz wurde durch erstellt: gapminder_2007. Durch die filter-Funktion enthält er nur die Daten aus dem Jahr 2007.
+Ein neuer Datensatz wurde durch erstellt: ```gapminder_2007```. Durch die filter-Funktion enthält er nur die Daten aus dem Jahr 2007.
 
 ```{r}
 gapminder_2007
