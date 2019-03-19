@@ -1,0 +1,56 @@
+---
+title: "Kolleg Europa - Social Network Analysis"
+subtitle: "Visualisierung und Interaktivität"
+author: "Stefan Haussner"
+date: "20. März 2019"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(igraph)
+library(threejs)
+library(knitr)
+library(htmlwidgets)
+library(visNetwork)
+```
+
+```{r}
+load("../data/data_preprocessed.Rdata")
+
+
+include_graphics("../material/visualisation_goals.png")
+
+include_graphics("../material/visualisation_controls.png")
+```
+
+# Interaktivität
+
+```{r}
+V(rd_igraph)$color=V(rd_igraph)$type
+V(rd_igraph)$color=gsub("TRUE","red",V(rd_igraph)$color)
+V(rd_igraph)$color=gsub("FALSE","blue",V(rd_igraph)$color)
+plot.igraph(rd_igraph, layout=layout_nicely)
+
+visIgraph(rd_igraph)
+```
+
+```{r}
+graphjs(rd_igraph,
+        vertex.size = 1,
+        vertex.label = V(rd_igraph)$name,
+        vertex.color = V(rd_igraph)$color,
+        bg = "#FFFFFF")
+
+widget <- graphjs(rd_igraph,
+        vertex.size = 1,
+        vertex.label = V(rd_igraph)$name,
+        vertex.color = V(rd_igraph)$color,
+        bg = "#FFFFFF")
+
+#saveWidget(widget, "../output/interactive.html")
+```
+

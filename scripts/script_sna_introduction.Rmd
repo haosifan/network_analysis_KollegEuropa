@@ -1,6 +1,7 @@
 ---
-title: "Kolleg Europa - Network Analysis"
-author: "Einführung in die Netzwerkanalyse"
+title: "Kolleg Europa - Social Network Analysis"
+subtitle: "Einführung in die Netzwerkanalyse"
+author: "Stefan Haussner"
 date: "20. März 2019"
 output:
   html_document: default

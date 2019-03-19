@@ -32,9 +32,10 @@ ui <- fluidPage(
                      min = 0,
                      max = max_degree,
                      value = 0),
-         radioButtons("position", "diplomatische Hierarchie:",
-                      c("Postition des Gastes" = "GastPos",
-                        "Verhältnis der Diplomaten" = "GastHost")
+         radioButtons("projection", "Projektion:",
+                      c("Two-Mode" = "twomode",
+                        "One-Mode EU" = "oneeu28",
+                        "One-Mode Drittstaaten" = "oneother")
          )
       ),
      

@@ -7,8 +7,12 @@ Speziell dieses abschließende Beispiel ist work-in-progress und stellt das Proj
 ## benötigte R-Pakete
 
 ```
-install.packages("igraph","gridExtra","tidyverse","openxlsx","janitor","countrycode","dplyr","threejs","DT","reshape2","gapminder","viridis","knitr")
+install.packages("igraph","gridExtra","tidyverse","openxlsx","janitor","countrycode","dplyr","threejs","DT","reshape2","gapminder","viridis","knitr","visNetwork")
 ```
+
+R Download: https://cran.rstudio.com/
+RStudio-Download: https://www.rstudio.com/products/rstudio/download/#download
+
 
 ## Inhalte
 
@@ -45,6 +49,7 @@ install.packages("igraph","gridExtra","tidyverse","openxlsx","janitor","countryc
 	+ Adaption der Funktionen für Inzidenzmatritzen
 	+ One-Mode-Projektionen des Two-Mode-Netzwerks
 5. Analyse des Reisediplomatie-Netzwerks (script_analysis_reisediplomatie.Rmd)
+6. Visualisierung und Interaktivität (sehr kurz)
 
 		
 ## Datensätze
