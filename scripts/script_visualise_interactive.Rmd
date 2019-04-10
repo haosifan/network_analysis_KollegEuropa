@@ -27,6 +27,8 @@ include_graphics("../material/visualisation_goals.png")
 include_graphics("../material/visualisation_controls.png")
 ```
 
+
+
 # Interaktivität
 
 ```{r}

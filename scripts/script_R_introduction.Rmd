@@ -73,7 +73,7 @@ mean(l2)
 
 round(x = 3.63545234123, digits = 4)
 round(3.63545234123, digits = 4)
-round(3.63545234123, 4)
+round(3.63545234123,4)
 
 plot(l1)
 plot(c(5,25,2123,123,5345),l2)
@@ -99,6 +99,7 @@ Inhalte mit Text wird meist in Anführungsstriche oder Hochkommata gesetzt. Die 
 txt <- "Das ist ein Text"
 txt
 class(txt)
+class(x)
 ```
 
 ### Boolean/Logical
@@ -139,6 +140,7 @@ levels(education)
 education
 education <- factor(education, levels = c("low", "medium", "high"))
 levels(education)
+education
 
 min(education) # doesn't work
 
@@ -208,7 +210,7 @@ Durch logische Operatoren lassen sich so bestimmte Zeilen suchen/ausschließen. 
 
 ```{r}
 df
-df[df$l1>100, ]
+df[df$l1 > 100, ]
 ```
 *Gesprochen: Der Datensatz df und alle Spalten (Hinter dem Komma ist leer). Aber nur die Zeilen, wo in Spalte 1 (l1) Werte über 100 stehen.*
 
@@ -223,6 +225,7 @@ Aber auch andere Formate lassen sich in R einlesen, nur braucht man hierzu meist
 Im amerikanischen Raum wird die csv-Datei mit Kommata als Spaltentrennzeichen und dem Punkt als Dezimalzeichen bei Zahlen verwendet. Im europäischen Raum wird meistens das Semikolon als Spaltentrennzeichen und das Komma als Dezimalzeichen genutzt. In R wurden deshalb 2 Arten von CSV-Einlese-Funktionen implementiert. read.csv für den amerikanischen Raum und read.csv2 für den europäischen. Die Funktionen lassen sich aber über die Optionen (```arguments```) anpassen.
 
 ```{r}
+read.csv("../data/datensatz_grades.csv")
 read.csv(file = "../data/datensatz_grades.csv", sep = ";", dec = ",")
 read.csv2(file = "../data/datensatz_grades.csv")
 daten <- read.csv2(file = "../data/datensatz_grades.csv")
@@ -248,6 +251,8 @@ Zun?chst einmal ist es möglich aus Excel heraus auch CSV-Dateien zu speichern. 
 library(openxlsx)
 grades <- read.xlsx('../data/datensatz_grades.xlsx', sheet = 1)
 grades
+
+plot(grades$Note.P1, grades$gesamt)
 ```
 
 

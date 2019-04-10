@@ -123,7 +123,6 @@ Bisher hinzugefügt:
 ```{r}
 E(rd_igraph)$GastPos <- rd_pregraph$OffPos_Gast
 E(rd_igraph)$GastHost <- rd_pregraph$GuestHost_rltnshp
-
 ```
 
 
