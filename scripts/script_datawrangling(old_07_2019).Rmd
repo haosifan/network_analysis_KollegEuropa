@@ -17,7 +17,6 @@ library(openxlsx)
 library(janitor)
 library(countrycode)
 library(dplyr)
-library(lubridate)
 ```
 
 In diesem Fall muss das Netzwerk aus einer edge list einglesen werden. Das ist gerade bei größeren Netzwerken üblich und spart Platz gegenüber einer incidence matrix.
@@ -41,15 +40,14 @@ In diesem Fall muss das Netzwerk aus einer edge list einglesen werden. Das ist g
 
 
 ```{r}
-rd_raw <- openxlsx::read.xlsx("../data/19_Gesamt_Datensammlung_Reisediplomatie Projekt_07-08_II.xlsx", sheet = 2, na.strings = ".", detectDates = TRUE) %>% 
+rd_raw <- openxlsx::read.xlsx("../data/Reisediplomatie Projekt_fin.xlsx", sheet = 1, na.strings = ".", detectDates = TRUE) %>% 
   as_tibble() %>% 
   janitor::clean_names()
   
 
 rd_clean <- rd_raw %>% 
   rename(OffPos_Gast = offizielle_position_des_besuchers_1_regierungschef_in_2_aussenminister_in,
-         OffPos_Host = offizielle_position_des_der_gesprachspartners_in_im_gastland_1_regierungschef_in_2_aussenminister_in_3_sonstiger_politischer_akteur,
-         gastland = gastland_gesprachspartner_bei_multilateralen_treffen) %>% 
+         OffPos_Host = offizielle_position_des_der_gesprachspartners_in_im_gastland_1_regierungschef_in_2_aussenminister_in_3_sonstiges_angeben) %>% 
   mutate(OffPos_Gast = case_when(OffPos_Gast == "Prime Minister" ~ "1",
                             OffPos_Gast == "Secretary General" ~ "2",
                             OffPos_Gast == "President" ~ "1",
@@ -72,13 +70,6 @@ rd_clean <- rd_raw %>%
                                  OffPos_Host %in% c("U","C","M","G","F") ~ "3",
                                  TRUE ~ NA_character_),
          gastland = case_when(gastland == "Isreal" ~ "Israel",
-                              gastland == "Iraq" ~ "Irak",
-                              gastland == "Djibouti" ~ "Dschibuti",
-                              gastland == "Uzbekistan" ~ "Usbekistan",
-                              gastland == "Zambia" ~ "Sambia",
-                              gastland == "Tunis" ~ "Tunesien",
-                              gastland == "Heiliger Stuhl" ~ "Vatikanstadt",
-                              gastland == "Gabon" ~ "Gabun",
                               TRUE ~ gastland)
          ) %>% 
   mutate(OffPos_Gast = as.numeric(OffPos_Gast),
@@ -89,13 +80,12 @@ rd_clean <- rd_raw %>%
                                        TRUE ~ 4),
          iso3_eu = countrycode(eu_land, "country.name.de", "iso3c"),
          iso3_host = countrycode(gastland, "country.name.de", "iso3c"))
+  
 ```
 
 Datensatz so auswählen, dass nur die wirklichen Verbindungen da sind. Gefiltert werden alle NAs (die müssen vorher geregelt werden), alle Gastländer die gleichzeitig EU-Länder sind (sonst kein bipartites Netz). Wenn auch EU-Länder als Gastländer auftreten sollen, ändert sich die Art des Netzwerks.
 
 > Hier sind zwei Entscheidungsfragen drin, die noch geklärt werden müssen.
-
-Hier außerdem Zeitraum gefiltert!
 
 ```{r}
 eu28 <- data.frame(codelist$iso3c,codelist$eu28) %>% 
@@ -105,12 +95,10 @@ eu28 <- data.frame(codelist$iso3c,codelist$eu28) %>%
 
 rd_pregraph <- rd_clean %>%
   filter(!is.na(iso3_host)) %>% 
-  filter(!(iso3_host %in% eu28)) %>%
-  filter(year(ankunftsdatum) == 2018)
-  
+  filter(!(iso3_host %in% eu28))
   
 
-rd_ready <- rd_pregraph %>%
+rd_ready <- rd_pregraph %>% 
   select(iso3_eu, iso3_host)
 ```
 

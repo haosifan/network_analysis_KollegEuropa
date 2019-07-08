@@ -53,6 +53,6 @@ widget <- graphjs(rd_igraph,
         vertex.color = V(rd_igraph)$color,
         bg = "#FFFFFF")
 
-#saveWidget(widget, "../output/interactive.html")
+saveWidget(widget, "../output/interactive.html")
 ```
 

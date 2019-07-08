@@ -2,7 +2,7 @@
 title: "Kolleg Europa - Social Network Analysis"
 subtitle: "Datenauswertung Reisediplomatie-Netzwerk"
 author: "Stefan Haussner"
-date: "20. März 2019"
+date: "08.07.2019"
 output:
   html_document: default
   pdf_document: default
@@ -23,11 +23,13 @@ load("C:/OwnCloud/SH/Workshops_Talks/KollegEuropa_Studienstiftung_Netzwerkanalys
 #load("D:/KollegEuropa_Studienstiftung_Netzwerkanalyse_Prag/R/network_analysis_KollegEuropa/data/data_preprocessed.Rdata")
 ```
 
-Grundsätzlich sieht das Reisediplomatie-Netzwerk bereits so aus. Limitations bzw. offene Fragen finden sich im ```script_datawrangling.Rmd```. 
+Grundsätzlich sieht das Reisediplomatie-Netzwerk bereits so aus. Limitations bzw. offene Fragen finden sich im ```script_datawrangling.Rmd```. Eine größere Abbildung ist mitgeschickt bzw. liegt in "outputs".
 
 ```{r}
 plot.igraph(rd_igraph,
-            vertex.color = V(rd_igraph)$type)
+            vertex.color = V(rd_igraph)$type,
+            vertex.label.cex = 0.8,
+            vertex.size = 10)
 ```
 
 # Analyse des Two-Mode-Netzwerks
@@ -104,8 +106,12 @@ rd_eu28 <- rd_projection$proj2
 ```
 
 ```{r}
-plot.igraph(rd_eu28)
-plot.igraph(rd_hosts)
+plot.igraph(rd_eu28,
+            vertex.label.cex = 0.8,
+            vertex.size = 10)
+plot.igraph(rd_hosts,
+            vertex.label.cex = 0.8,
+            vertex.size = 10)
 ```
 
 # Analyse des EU28-Netzwerks
@@ -146,7 +152,7 @@ r_degree <- degree(rd_eu28)
 data.frame(r_degree)
 
 plot.igraph(rd_eu28,
-            vertex.size = r_degree*2)
+            vertex.size = r_degree)
 
 
 ggplot() + 
@@ -222,7 +228,9 @@ largest_cliques(rd_eu28)
 ```{r}
 vcol <- rep("grey80", vcount(rd_eu28))
 vcol[unlist(largest_cliques(rd_eu28))] <- "gold"
-plot(as.undirected(rd_eu28), vertex.label=V(rd_eu28)$name, vertex.color=vcol)
+plot(as.undirected(rd_eu28), vertex.label=V(rd_eu28)$name, vertex.color=vcol,
+     vertex.label.cex = 0.8,
+     vertex.size = 10)
 ```
 
 ### Community detection
@@ -233,13 +241,18 @@ cle <- cluster_leading_eigen(rd_eu28)
 dendPlot(ceb, mode="hclust")
 dendPlot(cle, mode="hclust")
 
-plot(ceb,rd_eu28) 
-plot(cle,rd_eu28)
+plot(ceb,rd_eu28,
+     vertex.label.cex = 0.8,
+     vertex.size = 10) 
+
+plot(cle,rd_eu28, 
+     vertex.label.cex = 0.8,
+     vertex.size = 10)
 ```
 
 # Exponential Random Graph Models
 
-Wie "besonders" sind unsere Projektionsnetzwerke im Vergleich zu ähnlich aufgebauten Netzwerken?
+Wie "besonders" sind unsere Projektionsnetzwerke, im Vergleich zu ähnlich aufgebauten Netzwerken?
 
 ```{r}
 g_random <- vector('list',1000)
