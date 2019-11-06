@@ -1,0 +1,73 @@
+---
+title: "Workshop 19_11_07"
+author: "Stefan Haußner"
+date: "6 November 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(openxlsx)
+library(tidyverse)
+library(janitor)
+library(countrycode)
+```
+
+
+
+```{r}
+load("../data/data_preprocessed.Rdata")
+```
+
+# Datenaufbereitung Turnover Jonas
+
+```{r}
+turnover_raw <- openxlsx::read.xlsx("../data/19_Turnover_Jonas_nicht_zugeordnet_10-30.xlsx", 
+                                    sheet = 1, startRow = 12, na.strings = "not available") %>% 
+  tbl_df() %>% 
+  clean_names() %>% 
+  rename(belgium = belgium_and_luxbg_1998,
+         czechia = czechia_cs_1992,
+         germany = germany_incl_dd_from_1991) %>% 
+  select(partner_reporter:slovakia, croatia) %>% 
+  filter(!(row_number() %in% 273:280))
+
+turnover_prepared <- turnover_raw %>% 
+  gather(austria:croatia, key = country, value = value) %>% 
+  mutate(iso_host = countrycode(sourcevar = partner_reporter, origin = "country.name", "iso3c"),
+         iso_guest = countrycode(sourcevar = country, origin = "country.name", "iso3c"),
+         value = round(value, 6))
+```
+
+# Joining with network graph
+
+Some of the rows are not "unique", because i.e. there are two observations for DNK and RUS (Russian Federation and Soviet Union). Filtering through a mark for "unique" AND value over 0 OR EQUAL.
+
+```{r}
+
+turnover_prepared_2 <- left_join(rd_ready, turnover_prepared, by = c("iso3_eu" = "iso_guest", "iso3_host" = "iso_host")) %>% 
+  select(iso3_eu, iso3_host, value, partner_reporter) %>%
+  group_by(iso3_eu, iso3_host) %>% 
+  arrange(value, .by_group = TRUE) %>% 
+  mutate(n = n(),
+         lag = value - lag(value)) %>% 
+  mutate(filter_mark = (n > 1 & lag == 0),
+         filter_mark = case_when(is.na(filter_mark) ~ FALSE,
+                                 TRUE ~ filter_mark)) %>% 
+  filter(filter_mark == FALSE, !is.na(value)) %>% 
+  ungroup() %>% 
+  group_by(iso3_eu, iso3_host) %>% 
+  arrange(value, .by_group = TRUE) %>% 
+  mutate(n = n()) %>% 
+  filter(n == 1 | (n > 1 & lag > 0))
+
+turnover_network_data <- left_join(rd_ready, turnover_prepared_2, by = c("iso3_eu", "iso3_host")) %>% 
+  select(iso3_eu, iso3_host, turnover = value)
+
+```
+
+
+
