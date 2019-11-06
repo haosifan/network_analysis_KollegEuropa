@@ -1,0 +1,305 @@
+---
+title: "Kolleg Europa - Social Network Analysis"
+subtitle: "Datenauswertung Reisediplomatie-Netzwerk"
+author: "Stefan Haussner"
+date: "08.07.2019"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(igraph)
+library(threejs)
+library(DT)
+library(tidyverse)
+library(reshape2)
+```
+
+```{r}
+#load("C:/OwnCloud/SH/Workshops_Talks/KollegEuropa_Studienstiftung_Netzwerkanalyse_Prag/R/network_analysis_KollegEuropa/data/data_preprocessed.Rdata")
+#load("D:/KollegEuropa_Studienstiftung_Netzwerkanalyse_Prag/R/network_analysis_KollegEuropa/data/data_preprocessed.Rdata")
+```
+
+
+
+
+```{r}
+
+cntry_of_interest <- c("USA","CHN","RUS")
+
+rd_pregraph <- rd_clean %>%
+  filter(!is.na(iso3_host)) %>% 
+  filter(!(iso3_host %in% eu28)) %>% 
+  filter(iso3_host %in% cntry_of_interest)
+
+rd_ready <- rd_pregraph %>%
+  select(iso3_eu, iso3_host)
+
+
+```
+
+
+# Schritt 2: Creating Affiliation Network from Edge List
+
+```{r}
+rd_igraph <- rd_ready %>% graph.data.frame(directed = FALSE)
+
+
+V(rd_igraph)$type <- V(rd_igraph)$name %in% as.data.frame(rd_ready)[,1]
+
+V(rd_igraph)$color <- case_when(V(rd_igraph)$type == TRUE ~ "orange",
+          TRUE ~ "lightblue")
+
+
+
+LO <- layout_as_bipartite(rd_igraph)
+
+# Variante 1:
+
+
+plot.igraph(rd_igraph, 
+            vertex.color = V(rd_igraph)$type, 
+            layout=LO[,2:1], 
+            vertex.size = 0, 
+            #vertex.label.color = V(rd_igraph)$color, 
+            edge.color = "grey90")
+
+
+plot.igraph(rd_igraph)
+
+
+
+
+```
+
+
+# Analyse der One-Mode-Projektionen
+
+Die gemeinsame Untersuchung beider Knotentypen in einer Two-Mode-Netzwerkgrafik ist häufig der erste Schritt beim Studium eines Zugehörigkeitsnetzwerks. Es ist jedoch auch sinnvoll die ```One-Mode-Projektionen``` des Netzwerks zu untersuchen.
+Die Funktion ```bipartite.projection``` gibt eine Liste von zwei igraph-Netzwerkobjekten zurück. Das erste Netzwerk besteht aus direkten Verbindungen zwischen dem ersten Modus und das zweite Netzwerk zeigt die Verbindungen zwischen dem zweiten Modus. In unserem Fall also ein Netzwerk aller EU28-Länder und ein Netzwerk aller Gastgeberländer.
+
+```{r}
+rd_projection <- bipartite.projection(rd_igraph)
+rd_projection
+
+rd_hosts <- rd_projection$proj1
+rd_eu28 <- rd_projection$proj2
+```
+
+```{r}
+plot.igraph(rd_hosts,
+            vertex.label.cex = 0.8,
+            vertex.size = 10,
+            vertex.color = "orange",
+            layout = layout_nicely)
+```
+
+# Analyse des EU28-Netzwerks
+
+Das Host-Netzwerk ist ein ```Co-occurence-Netzwerk``` (One-Mode-Projektion des ursprünglichen Reisediplomatienetzwerks). Zwei Länder der EU28 haben dann eine Verbindung, wenn sie das gleiche Gastland besucht haben. Das Netzwerk ist ein ungerichtetes Netzwerk.
+
+## Distances and paths
+
+Die Länder die am wenigsten gemeinsame Besucher aus den EU28 hatten, lassen sich über den längsten Pfad im Netzwerk ermitteln. Das ist sozusagen der weiteste Abstand zwischen zwei Knoten, wenn jemand über die Kanten von einem zum anderen Knoten laufen wollen würde.
+
+```{r}
+farthest_vertices(rd_hosts)
+diameter(rd_hosts)
+
+mean_distance(rd_hosts, directed=FALSE)
+```
+
+## edge density
+
+```{r}
+edge_density(rd_hosts)
+```
+
+
+## Welche Länder sind im Netzwerk besonders auffallend?
+
+Es ist intuitiv sinnvoll, dass ein Netzwerkmitglied, das mit vielen anderen Mitgliedern des Netzwerks verbunden ist, eine herausragende Position einnimmt. Für nicht gerichtete Netzwerke sprechen wir von Akteuren mit einer hohen Zentralität.
+Es gibt jedoch eine Reihe von Möglichkeiten, diese Art der Zentralität zu operationalisieren. Tatsächlich stehen in der Sozialen Netzwerkanalyse Dutzende von Zentralitätsstatistiken zur Verfügung.
+
+### Degree centrality
+
+> Erinnerung degree: Anzahl, wie viele Nachbarn ein Knoten hat.
+
+```{r}
+degree(rd_hosts)
+r_degree <- degree(rd_hosts)
+
+data.frame(r_degree) %>% 
+  datatable(options = list(pageLength = 23))
+```
+
+### Closeness Centrality
+
+> Erinnerung closeness: mittlere Entfernung von einem Scheitelpunkt zu anderen Scheitelpunkten
+
+```{r}
+r_closeness <- closeness(rd_hosts, weights = E(rd_hosts)$weight)
+data.frame(r_closeness) %>% 
+  round(6) %>% 
+  datatable(options = list(pageLength = 20))
+```
+
+### Betweenness
+
+> Erinnerung betweenness: Ausmaß, in dem ein Knoten auf Pfaden zwischen anderen Knoten liegt.
+
+```{r}
+r_betweenness <- igraph::betweenness(rd_hosts)
+data.frame(r_betweenness) %>% 
+  round(6) %>% 
+  datatable(options = list(pageLength = 20))
+```
+
+
+### Eigenvector-Centrality
+
+> Erinnerung eigenvector: Ein Knoten ist wichtig, wenn er mit anderen wichtigen Knoten verbunden ist.
+
+```{r}
+r_eigen <- eigen_centrality(rd_hosts)
+data.frame(r_eigen$vector) %>% 
+  round(6) %>% 
+  datatable(options = list(pageLength = 20))
+```
+
+
+Alle Ergebnisse gesammelt und in sortierbarer Tabelle:
+
+```{r}
+results_df <- data.frame(r_degree,r_closeness, r_betweenness, r_eigen$vector) %>%
+  rownames_to_column() %>% as_tibble() %>% 
+  mutate_if(is.numeric, round, 4) %>% 
+  arrange(rowname)
+
+datatable(results_df, options = list(pageLength = 20))
+```
+
+
+
+## Subgroups and communities
+
+### Transitivität
+
+> Transitivität ist definiert als das Verhältnis geschlossener Dreiecke (Triaden, bei denen alle drei Bindungen beobachtet werden) zur Gesamtzahl aller möglichen Dreiecke (Triaden, bei denen entweder zwei oder alle drei Bindungen beobachtet werden). 
+
+```{r}
+transitivity(rd_hosts)
+```
+
+### Größte Clique
+
+```{r}
+#cliques(rd_hosts) # list of cliques       
+largest_cliques(rd_hosts)
+```
+
+```{r}
+vcol <- rep("grey80", vcount(rd_hosts))
+vcol[unlist(largest_cliques(rd_hosts))] <- "gold"
+plot(as.undirected(rd_hosts), vertex.label=V(rd_hosts)$name, vertex.color=vcol,
+     vertex.label.cex = 0.8,
+     vertex.size = 10)
+```
+
+### Community detection
+```{r}
+ceb <- cluster_edge_betweenness(rd_hosts) 
+cle <- cluster_leading_eigen(rd_hosts)
+
+#cop <- cluster_optimal(rd_hosts)
+
+dendPlot(ceb, mode="hclust")
+dendPlot(cle, mode="hclust")
+
+
+plot(ceb,rd_hosts,
+     vertex.label.cex = 0.8,
+     vertex.size = 10) 
+
+plot(cle,rd_hosts, 
+     vertex.label.cex = 0.8,
+     vertex.size = 10)
+
+#plot(cop,rd_hosts, 
+#     vertex.label.cex = 0.8,
+#     vertex.size = 10)
+```
+
+# Exponential Random Graph Models
+
+Wie "besonders" sind unsere Projektionsnetzwerke, im Vergleich zu ähnlich aufgebauten Netzwerken?
+
+```{r}
+g_random <- vector('list',1000)
+
+for(i in 1:1000){
+  
+  g_random[[i]] <- sample_gnp(n = gorder(rd_hosts), 
+                              p = edge_density(rd_hosts), 
+                              directed = FALSE)
+}
+
+# apply mean_distance on every graph
+g_random_meandis <- unlist(lapply(g_random, mean_distance, directed = FALSE))
+
+mean_distance(rd_hosts, directed = FALSE)
+# graphical comparison to original network
+ggplot() + 
+  aes(g_random_meandis)+ 
+  geom_histogram(bins = 50, colour="black", fill="white")+
+  geom_vline(xintercept = mean_distance(rd_hosts, directed = FALSE), colour="red", linetype = "longdash")+
+  labs(title = "ERGM: mean distance",
+       x = "mean distance")
+```
+
+```{r}
+g_random <- vector('list',1000)
+
+for(i in 1:1000){
+  
+  g_random[[i]] <- sample_gnp(n = gorder(rd_hosts), 
+                              p = edge_density(rd_hosts), 
+                              directed = FALSE)
+}
+
+# apply mean_distance on every graph
+g_random_meandis <- unlist(lapply(g_random, mean_distance, directed = FALSE))
+
+g_random_diameter <- unlist(lapply(g_random, diameter, directed = FALSE))
+
+g_random_transitivity <- unlist(lapply(g_random, transitivity))
+
+ggplot() + 
+  aes(g_random_meandis)+ 
+  geom_histogram(bins = 50, colour="black", fill="white")+
+  geom_vline(xintercept = mean_distance(rd_hosts, directed = FALSE), colour="red", linetype = "longdash")+
+  labs(title = "ERGM: mean distance",
+       x = "mean distance")
+
+ggplot() + 
+  aes(g_random_diameter)+ 
+  geom_histogram(bins = 50, colour="black", fill="white")+
+  geom_vline(xintercept = diameter(rd_hosts, directed = FALSE), colour="red", linetype = "longdash")+
+  labs(title = "ERGM: diameter",
+       x = "diameter")
+
+ggplot() + 
+  aes(g_random_transitivity)+ 
+  geom_histogram(bins = 50, colour="black", fill="white")+
+  geom_vline(xintercept = transitivity(rd_hosts), colour="red", linetype = "longdash")+
+  labs(title = "ERGM: transitivity",
+       x = "transitivity")
+```
+
+
+
+
+

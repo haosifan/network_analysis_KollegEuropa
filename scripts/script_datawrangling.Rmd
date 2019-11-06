@@ -105,9 +105,11 @@ V(rd_igraph)$type <- V(rd_igraph)$name %in% as.data.frame(rd_ready)[,1]
 
 V(rd_igraph)$color <- case_when(V(rd_igraph)$type == TRUE ~ "darkblue",
           TRUE ~ "lightblue")
+
+plot.igraph(rd_igraph, vertex.color = V(rd_igraph)$type, layout=layout_nicely)
   
 plot.igraph(rd_igraph, vertex.color = V(rd_igraph)$type, layout=layout_nicely, vertex.size = 0, 
-            vertex.label.color = V(rd_igraph)$color, edge.color = "grey90")
+            vertex.label.color = V(rd_igraph)$color, edge.color = "grey70")
 ```
 
 # Schritt 3: Hinzufügen von zusätzlichen Attributen
@@ -121,6 +123,11 @@ Bisher hinzugefügt:
 E(rd_igraph)$GastPos <- rd_pregraph$OffPos_Gast
 E(rd_igraph)$GastHost <- rd_pregraph$GuestHost_rltnshp
 E(rd_igraph)$year <- year(rd_pregraph$ankunftsdatum)
+E(rd_igraph)$multilateral <- rd_pregraph$multilaterales_treffen_1_ja_2_nein
+
+include_edges <- which(E(rd_igraph)$multilateral == 2)
+
+rd_igraph <- subgraph.edges(rd_igraph, eids = include_edges)
 ```
 
 

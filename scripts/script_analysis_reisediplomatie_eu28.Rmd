@@ -133,7 +133,8 @@ E(rd_eu28)$weight
 plot.igraph(rd_eu28,
             vertex.label.cex = 0.8,
             vertex.size = 10,
-            vertex.color = "orange")
+            vertex.color = "orange",
+            layout = layout_in_circle)
 
 plot.igraph(rd_hosts,
             vertex.label.cex = 0.8,
