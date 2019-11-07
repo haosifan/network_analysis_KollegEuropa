@@ -9,6 +9,10 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# Preface
+
+Benötigte Pakete und Netzwerkdaten laden
+
 ```{r results = 'hide', message=FALSE, warning=FALSE}
 library(openxlsx)
 library(tidyverse)
@@ -20,19 +24,20 @@ library(ggthemes)
 ```
 
 
-
 ```{r}
 load("../data/data_preprocessed.Rdata")
 ```
 
+
 # Combining network data with supplementary data
 
-dass wir unsere Daten in Zusammenhang mit unseren grundlegenden Annahmen und Thesen stellen
+Wir haben in Sarajevo entschieden, dass wir unsere Daten in Zusammenhang mit unseren grundlegenden Annahmen und Thesen stellen. Hierzu haben wir zwei grobe Themenblöcke definiert:
+  
+  * Wirtschaftliche Beziehungen
+  * Sozio-kulturelle Verbindungen
 
-* hierzu haben wir zwei grobe Themenblöcke definiert
-    * Wirtschaftliche Beziehungen
-    * Sozio-kulturelle Verbindungen
-* Um die These(n) zu prüfen haben wir unabhängige Variablen definiert (siehe Tabelle im Protokoll)
+
+Um die These(n) zu prüfen haben wir unabhängige Variablen definiert (siehe Tabelle im Protokoll)
 
 I. Wirtschaftliche Beziehungen
 
@@ -46,6 +51,10 @@ II. Sozio-kulturelle Verbindungen
   * EU-Bürger_innen in Drittstaaten (Arbeitsmigration) (Katharina)
 
 ## Datenaufbereitung Turnover Jonas
+
+Stefan: Ich habe die Daten so aufbereitet, dass sie im "Long-Format" vorliegen. Das bedeutet eine Spalte Handelspartnerland, eine Spalte EU-Land und eine Spalte den value (hier Handelsvolumen). Das kommt der Struktur der *edge list* des Netzwerks am nächsten.
+
+Die urspünglichen Daten lagen im "Wide-Format" vor, also eine Spalte mit Handelspartner und dann als "Kopfzeile" die EU28 und in den jeweiligen Zellen den Value.
 
 ```{r}
 turnover_raw <- openxlsx::read.xlsx("../data/19_Turnover_Jonas_nicht_zugeordnet_10-30.xlsx", 
@@ -68,6 +77,8 @@ turnover_prepared <- turnover_raw %>%
 # Preparing supplementary data for merging with network-graph
 
 Some of the rows are not "unique", because i.e. there are two observations for DNK and RUS (Russian Federation and Soviet Union). Filtering through a mark for "unique" AND value over 0 OR EQUAL.
+
+Aufgrund der oben beschriebenen Probleme mit doppelten Zeilen werden die Daten hier nochmals aufbereitet und schließlich über *left_join* an die die edge-list des Netzwerkes gematched. Dabei wir quasi geschaut, wo die BEIDEN Spalten iso3_eu und iso3_host übereinstimmen.
 
 ```{r}
 
@@ -97,6 +108,10 @@ turnover_network_data <- left_join(rd_ready, turnover_prepared_2, by = c("iso3_e
 
 ## Extrahieren von Regionen aus dem Gesamtnetzwerk
 
+Hier wird das Netzwerk der einzelnen Regionen aus dem Gesamtnetzwerk extrahiert. Der Code ist so aufgebaut, dass nur das Objekt *countries_of_interest* geändert werden muss, um eine andere Region zu analysieren.
+
+Dazu müssen eben alle ISO3-Codes der jeweiligen Länder in einer Region (oder von euch gesetzten Zusammenstellung) gesucht werden. Natürlich geht auch "Großmächte" oder "EU-Beitrittskandidaten" etc.
+
 ```{r}
 
 #countries_of_interest <- c("BLZ", "CRI","SLV","GTM","HND","MEX","NIC","PAN")
@@ -120,6 +135,12 @@ tbc.
 
 ### Bipartite Projektion der EU28
 
+> Erinnerung: Unser Netzwerk ist ein bipartites Netz, weil es aus 2 klar abgegrenzten Gruppen besteht (EU28 und Gastländer). Die Projektionen dieses Netzwerkes bilden dann ein Netzwerk aus EINER Gruppe dieser Länder.
+
+Eine Verbindung zwischen D und F besteht bspw. dann, wenn die beiden Länder im Datensatz mal Guatemala besucht haben. Darüber hinaus wird automatisch das Attribut *weight* im Netzwerk erzeugt. Dieses Attribut beschreibt, wieviele gemeinsame Länder D und F besucht haben.
+
+Hier habe ich dieses Gewicht als Möglichkeit genutzt, die Verbindungslinien umso stärker zu machen, je mehr gemeinsame Besuchsländer zwei Knotenpunkte hatten.
+
 ```{r}
 rd_projection <- bipartite.projection(rd_region)
 rd_projection_eu <- rd_projection$proj1
@@ -129,40 +150,13 @@ plot.igraph(rd_projection_eu, edge.width = E(rd_projection_eu)$weight)
 ```
 
 
-```{r}
-source("../scripts/bipartite_closeness_centrality.R")
+# Verknüpfung von Zentralitätswerten des Netzwerks mit supplementary data
 
-#bipartite_closeness_centrality(rd_igraph)
+Schließlich müssen wir die Ergebnisse unserer Analysen zusammenbringen mit den zusätzlichen Werten, die ihr recherchiert habt (hier als Beispiel das Handelsvolumen).
 
-bipartite_closeness_centrality(rd_region) %>% unlist() %>% unname() %>% round(3) %>% tbl_df() %>% 
-  mutate(name = V(rd_region)$name,
-         type = case_when(V(rd_region)$type == FALSE ~ "eu",
-                          TRUE ~ "non-eu")) %>% 
-  select(name, closeness_centrality = value, type) %>%
-  arrange(type, closeness_centrality)
+Der erste Block beinhaltet die Auswahl für die Handelsdaten. Die Daten werden erst gefiltert, dass wieder nur die Zeilen vorhanden sind, die uns auch interessieren (countries_of_interest). Anschließend werden die Daten gruppiert, nach den EU-Staaten und anschließend pro Gruppe das Handelsvolumen aufsummiert (geht, weil prozentual). Somit haben wir am Ende eine Tabelle mit dem Handelsvolumen des EU-Landes in die jeweilige Region.
 
-
-```
-
-Gleiches gilt für die Betweenness-Zentralität.
-
-> Erinnerung ```Betweenness```: Ausmaß, in dem ein Knoten auf Pfaden zwischen anderen Knoten liegt.
-
-```{r}
-source("../scripts/bipartite_betweenness_centrality.R")
-
-#bipartite_betweenness_centrality(rd_igraph)
-
-bipartite_betweenness_centrality(rd_region) %>% unlist() %>% unname() %>% round(3) %>% tbl_df %>% 
-  mutate(name = V(rd_region)$name,
-         type = case_when(V(rd_region)$type == FALSE ~ "eu",
-                          TRUE ~ "non-eu")) %>% 
-  select(name, betweenness_centrality = value, type) %>%
-  arrange(type, -betweenness_centrality)
-```
-
-
-# Verknüpfung von supplementary data mit Regionen
+Die weiteren beiden Blöcke generiert ein Objekt mit den Zentralitätsmaßen *Eigenvector-centrality* und *Strength*. Der letzte Block fasst diese Daten zusammen (*left_join*) und plottet.
 
 ```{r}
 turnover_in_region <- turnover_network_data %>% 
@@ -170,16 +164,23 @@ turnover_in_region <- turnover_network_data %>%
   group_by(iso3_eu) %>% 
   summarise(turnover_in_region = sum(turnover))
 
+```
+
+```{r}
 region_eigen <- eigen_centrality(rd_projection_eu, weights = E(rd_projection_eu)$weight)$vector %>% 
   data.frame() %>% 
   rownames_to_column(var = "iso3_eu") %>% 
   rename(eigenvector_centr = ".")
+```
 
+```{r}
 region_strength <- strength(rd_projection_eu) %>% 
   data.frame() %>% 
   rownames_to_column(var = "iso3_eu") %>% 
   rename(strength = ".")
+```
 
+```{r}
 region_dataset <- left_join(region_eigen, region_strength, by = "iso3_eu") %>% 
   left_join(., turnover_in_region, by = "iso3_eu")
 
@@ -191,7 +192,6 @@ ggplot(region_dataset, aes(x = turnover_in_region, y = eigenvector_centr))+
   theme_minimal(base_size = 14)+
   labs(x = "turnover in region (%)",
        y = "eigenvector centrality")
-  
-
 ```
+
 
