@@ -76,7 +76,7 @@ turnover_prepared <- turnover_raw %>%
 
 # Preparing supplementary data for merging with network-graph
 
-Some of the rows are not "unique", because i.e. there are two observations for DNK and RUS (Russian Federation and Soviet Union). Filtering through a mark for "unique" AND value over 0 OR EQUAL.
+Einige der Zeilen sind nicht "eindeutig", da es z.B. zwei Beobachtungen für DNK und RUS (Russische Föderation und Sowjetunion) gibt. Filtern durch eine Flag für "unique" UND-Wert über 0 ODER EQUAL.
 
 Aufgrund der oben beschriebenen Probleme mit doppelten Zeilen werden die Daten hier nochmals aufbereitet und schließlich über *left_join* an die die edge-list des Netzwerkes gematched. Dabei wir quasi geschaut, wo die BEIDEN Spalten iso3_eu und iso3_host übereinstimmen.
 
