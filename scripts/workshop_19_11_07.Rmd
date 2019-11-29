@@ -74,6 +74,29 @@ turnover_prepared <- turnover_raw %>%
          value = round(value, 6))
 ```
 
+## Datenaufbereitung von Freihandelsabkommen mit EU und Botschaften
+
+```{r}
+fta_embassy_prepared <- openxlsx::read.xlsx("../data/19_Datensammlung_Reisediplomatie Projekt_Gesamt_Bilateral_mit_ind._Variablen_11-25.xlsx", sheet = 2) %>% 
+  clean_names() %>% tbl_df() %>% 
+  select(eu_land, gastland = gastland_gesprachspartner_bei_multilateralen_treffen,
+         fta = freihandelsabkommen_mit_der_eu_1_ja_2_nein,
+         embassy = botschaft_ja_1_nein_2_des_eu_landes_in_gastland) %>% 
+  mutate(gastland = case_when(gastland == "Canada" ~ "Kanada",
+                              gastland == "Egypten" ~ "Ägypten",
+                              gastland == "Indonesia" ~ "Indonesien",
+                              gastland == "Morokko" ~ "Marokko",
+                              gastland == "Venesuela" ~ "Venezuela",
+                              TRUE ~ gastland)) %>% 
+  mutate(fta = abs(fta-2),
+         embassy = abs(embassy-2),
+         iso3_eu = countrycode(eu_land, "country.name.de","iso3c"),
+         iso3_host = countrycode(gastland, "country.name.de","iso3c")) %>% 
+  filter(!is.na(iso3_host))
+  
+```
+
+
 # Preparing supplementary data for merging with network-graph
 
 Einige der Zeilen sind nicht "eindeutig", da es z.B. zwei Beobachtungen für DNK und RUS (Russische Föderation und Sowjetunion) gibt. Filtern durch eine Flag für "unique" UND-Wert über 0 ODER EQUAL.
@@ -98,8 +121,9 @@ turnover_prepared_2 <- left_join(rd_ready, turnover_prepared, by = c("iso3_eu" =
   mutate(n = n()) %>% 
   filter(n == 1 | (n > 1 & lag > 0))
 
-turnover_network_data <- left_join(rd_ready, turnover_prepared_2, by = c("iso3_eu", "iso3_host")) %>% 
-  select(iso3_eu, iso3_host, turnover = value)
+addvars_network_data <- left_join(rd_ready, turnover_prepared_2, by = c("iso3_eu", "iso3_host")) %>% 
+  select(iso3_eu, iso3_host, turnover = value) %>% 
+  left_join(., fta_embassy_prepared, by = c("iso3_eu","iso3_host"))
 
 ```
 
@@ -162,10 +186,13 @@ Der erste Block beinhaltet die Auswahl für die Handelsdaten. Die Daten werden e
 Die weiteren beiden Blöcke generiert ein Objekt mit den Zentralitätsmaßen *Eigenvector-centrality* und *Strength*. Der letzte Block fasst diese Daten zusammen (*left_join*) und plottet.
 
 ```{r}
-turnover_in_region <- turnover_network_data %>% 
-  filter(iso3_host %in% countries_of_interest) %>% 
+addvars_in_region <- addvars_network_data %>% 
+  filter(iso3_host %in% countries_of_interest) %>%
+  distinct() %>% 
   group_by(iso3_eu) %>% 
-  summarise(turnover_in_region = sum(turnover))
+  summarise(turnover_in_region = sum(turnover),
+            fta_in_region = sum(fta, na.rm = TRUE),
+            embassies_in_region = sum(embassy, na.rm = TRUE))
 
 ```
 
@@ -183,17 +210,72 @@ region_strength <- strength(rd_projection_eu) %>%
   rename(strength = ".")
 ```
 
+Verknüpfung über left_join aller Daten
+
 ```{r}
 region_dataset <- left_join(region_eigen, region_strength, by = "iso3_eu") %>% 
-  left_join(., turnover_in_region, by = "iso3_eu")
+  left_join(., addvars_in_region, by = "iso3_eu")
 
+region_dataset_long <- region_dataset %>% 
+  gather(c(turnover_in_region, fta_in_region, embassies_in_region), key = "indvar", value = "value")
 
+```
+
+# Analysis
+
+## Plots für strength
+
+```{r}
 ggplot(region_dataset, aes(x = turnover_in_region, y = strength))+
   #geom_smooth(method = "lm", alpha = 0.2)+
   geom_point()+
   geom_text_repel(aes(label = iso3_eu))+
   theme_minimal(base_size = 14)+
   labs(x = "turnover in region (%)",
+       y = "visits in region (#)")
+
+ggplot(region_dataset, aes(x = embassies_in_region, y = strength))+
+  #geom_smooth(method = "lm", alpha = 0.2)+
+  geom_point()+
+  geom_text_repel(aes(label = iso3_eu))+
+  theme_minimal(base_size = 14)+
+  labs(x = "embassies in region (#)",
+       y = "visits in region (#)")
+
+ggplot(region_dataset, aes(x = fta_in_region, y = strength))+
+  #geom_smooth(method = "lm", alpha = 0.2)+
+  geom_point()+
+  geom_text_repel(aes(label = iso3_eu))+
+  theme_minimal(base_size = 14)+
+  labs(x = "fta in region (#)",
+       y = "visits in region (#)")
+```
+
+## Plots für eigenvector centrality
+
+```{r}
+ggplot(region_dataset, aes(x = turnover_in_region, y = eigenvector_centr))+
+  #geom_smooth(method = "lm", alpha = 0.2)+
+  geom_point()+
+  geom_text_repel(aes(label = iso3_eu))+
+  theme_minimal(base_size = 14)+
+  labs(x = "turnover in region (%)",
+       y = "eigenvector centrality")
+
+ggplot(region_dataset, aes(x = embassies_in_region, y = eigenvector_centr))+
+  #geom_smooth(method = "lm", alpha = 0.2)+
+  geom_point()+
+  geom_text_repel(aes(label = iso3_eu))+
+  theme_minimal(base_size = 14)+
+  labs(x = "embassies in region (#)",
+       y = "eigenvector centrality")
+
+ggplot(region_dataset, aes(x = fta_in_region, y = eigenvector_centr))+
+  #geom_smooth(method = "lm", alpha = 0.2)+
+  geom_point()+
+  geom_text_repel(aes(label = iso3_eu))+
+  theme_minimal(base_size = 14)+
+  labs(x = "fta in region (#)",
        y = "eigenvector centrality")
 ```
 

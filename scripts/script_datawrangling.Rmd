@@ -42,7 +42,7 @@ In diesem Fall muss das Netzwerk aus einer edge list einglesen werden. Das ist g
 
 
 ```{r}
-rd_raw <- openxlsx::read.xlsx("../data/19_Datensammlung_Reisediplomatie Projekt_Gesamt_09-13_Stefan.xlsx", 
+rd_raw <- openxlsx::read.xlsx("../data/19_Datensammlung_Reisediplomatie Projekt_Gesamt_10-20.xlsx", 
                               sheet = 2, na.strings = ".", detectDates = TRUE, skipEmptyCols = TRUE) %>% 
   as_tibble() %>% 
   janitor::clean_names()
@@ -61,6 +61,11 @@ rd_clean <- rd_raw %>%
                               gastland == "Tunis" ~ "Tunesien",
                               gastland == "Heiliger Stuhl" ~ "Vatikanstadt",
                               gastland == "Gabon" ~ "Gabun",
+                              gastland == "Canada" ~ "Kanada",
+                              gastland == "Egypten" ~ "Ägypten",
+                              gastland == "Indonesia" ~ "Indonesien",
+                              gastland == "Morokko" ~ "Marokko",
+                              gastland == "Venesuela" ~ "Venezuela",
                               TRUE ~ gastland)
          ) %>% 
   mutate(GuestHost_rltnshp = case_when(OffPos_Gast == 1 & OffPos_Host == 1 ~ 1,
