@@ -112,6 +112,7 @@ Hier wird das Netzwerk der einzelnen Regionen aus dem Gesamtnetzwerk extrahiert.
 
 Dazu müssen eben alle ISO3-Codes der jeweiligen Länder in einer Region (oder von euch gesetzten Zusammenstellung) gesucht werden. Natürlich geht auch "Großmächte" oder "EU-Beitrittskandidaten" etc.
 
+
 ```{r}
 
 #countries_of_interest <- c("BLZ", "CRI","SLV","GTM","HND","MEX","NIC","PAN")
@@ -146,6 +147,8 @@ rd_projection <- bipartite.projection(rd_region)
 rd_projection_eu <- rd_projection$proj1
 
 plot.igraph(rd_projection_eu, edge.width = E(rd_projection_eu)$weight)
+
+E(rd_projection_eu)$weight
 
 ```
 
@@ -185,7 +188,7 @@ region_dataset <- left_join(region_eigen, region_strength, by = "iso3_eu") %>%
   left_join(., turnover_in_region, by = "iso3_eu")
 
 
-ggplot(region_dataset, aes(x = turnover_in_region, y = eigenvector_centr))+
+ggplot(region_dataset, aes(x = turnover_in_region, y = strength))+
   #geom_smooth(method = "lm", alpha = 0.2)+
   geom_point()+
   geom_text_repel(aes(label = iso3_eu))+
