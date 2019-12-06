@@ -1,7 +1,7 @@
 ---
 title: "Workshop 19_11_07"
 author: "Stefan Haußner"
-date: "6 November 2019"
+date: "06 December 2019"
 output: html_document
 ---
 
@@ -69,9 +69,18 @@ turnover_raw <- openxlsx::read.xlsx("../data/19_Turnover_Jonas_nicht_zugeordnet_
 
 turnover_prepared <- turnover_raw %>% 
   gather(austria:croatia, key = country, value = value) %>% 
+  mutate(partner_reporter = case_when(partner_reporter == "ISRAEL (GAZA and JERICHO->1994)" ~ "Israel",
+                                      partner_reporter == "SERBIA AND MONTENEGRO (EU data from 01/01/04 to 31/05/05)(2004-2005)" ~ "Serbia and Montenegro",
+                                      partner_reporter == "YEMEN  (excl. SOUTH -> 1990)" ~ "Yemen",
+                                      partner_reporter == "ETHIOPIA (incl. ERITREA ->1993)" ~ "Ethiopia",
+                                      partner_reporter == "COMOROS (incl. MAYOTTE ->1976)" ~ "Comoros",
+                                      partner_reporter == "KOSOVO (EU data from 01/06/05 ex CS)" ~ "Kosovo",
+                                      TRUE ~ partner_reporter)) %>% 
   mutate(iso_host = countrycode(sourcevar = partner_reporter, origin = "country.name", "iso3c"),
          iso_guest = countrycode(sourcevar = country, origin = "country.name", "iso3c"),
-         value = round(value, 6))
+         value = round(value, 6)) %>% 
+   mutate(iso_host = case_when(partner_reporter == "Kosovo" ~ "KSV",
+                               TRUE ~ iso_host))
 ```
 
 ## Datenaufbereitung von Freihandelsabkommen mit EU und Botschaften
@@ -95,6 +104,34 @@ fta_embassy_prepared <- openxlsx::read.xlsx("../data/19_Datensammlung_Reisediplo
   filter(!is.na(iso3_host))
   
 ```
+
+# Datenaufbereitung Remittances (Yunus)
+
+```{r}
+remit_raw <- read.xlsx("../data/19_Yunus_Daten_Reisediplomatie_plus_Remittances_12-03.xlsx", 
+                       sheet = 2) %>% 
+  tbl_df() %>% 
+  clean_names() %>% 
+  filter(!is.na(eu_land))
+
+remit_prepared <- remit_raw %>% 
+  select(eu_land, 
+         gastland = gastland_gesprachspartner_bei_multilateralen_treffen, 
+         percent_remittances = percent_remittances_send_total) %>% 
+  mutate(gastland = case_when(gastland == "Canada" ~ "Kanada",
+                              gastland == "Egypten" ~ "Ägypten",
+                              gastland == "Indonesia" ~ "Indonesien",
+                              gastland == "Morokko" ~ "Marokko",
+                              gastland == "Venesuela" ~ "Venezuela",
+                              TRUE ~ gastland)) %>% 
+  mutate(iso3_eu = countrycode(eu_land, "country.name.de","iso3c"),
+         iso3_host = countrycode(gastland, "country.name.de","iso3c"),
+         iso3_host = case_when(gastland == "Kosovo" ~ "KSV",
+                               TRUE ~ iso3_host),
+         percent_remittances = as.numeric(percent_remittances)) %>% 
+  select(iso3_eu, iso3_host, percent_remittances)
+```
+
 
 
 # Preparing supplementary data for merging with network-graph
@@ -123,7 +160,8 @@ turnover_prepared_2 <- left_join(rd_ready, turnover_prepared, by = c("iso3_eu" =
 
 addvars_network_data <- left_join(rd_ready, turnover_prepared_2, by = c("iso3_eu", "iso3_host")) %>% 
   select(iso3_eu, iso3_host, turnover = value) %>% 
-  left_join(., fta_embassy_prepared, by = c("iso3_eu","iso3_host"))
+  left_join(., fta_embassy_prepared, by = c("iso3_eu","iso3_host")) %>% 
+  left_join(., remit_prepared, by = c("iso3_eu","iso3_host"))
 
 ```
 
@@ -141,6 +179,7 @@ Dazu müssen eben alle ISO3-Codes der jeweiligen Länder in einer Region (oder v
 
 #countries_of_interest <- c("BLZ", "CRI","SLV","GTM","HND","MEX","NIC","PAN")
 countries_of_interest <- c("CHN", "HKG","JPN","PRK","KOR","MAC","MNG")
+#countries_of_interest <- c("PRY","ABW","VEN","BRA","URY","BOL","COL","ARG","CHL","ECU","CRI","DOM","PER","CUB","MEX","PAN")
 
 
 rd_region <- rd_ready %>% 
@@ -192,7 +231,8 @@ addvars_in_region <- addvars_network_data %>%
   group_by(iso3_eu) %>% 
   summarise(turnover_in_region = sum(turnover),
             fta_in_region = sum(fta, na.rm = TRUE),
-            embassies_in_region = sum(embassy, na.rm = TRUE))
+            embassies_in_region = sum(embassy, na.rm = TRUE),
+            remittances_in_region = sum(percent_remittances, na.rm = TRUE))
 
 ```
 
@@ -217,7 +257,7 @@ region_dataset <- left_join(region_eigen, region_strength, by = "iso3_eu") %>%
   left_join(., addvars_in_region, by = "iso3_eu")
 
 region_dataset_long <- region_dataset %>% 
-  gather(c(turnover_in_region, fta_in_region, embassies_in_region), key = "indvar", value = "value")
+  gather(c(turnover_in_region, fta_in_region, embassies_in_region, remittances_in_region), key = "indvar", value = "value")
 
 ```
 
@@ -232,7 +272,7 @@ ggplot(region_dataset, aes(x = turnover_in_region, y = strength))+
   geom_text_repel(aes(label = iso3_eu))+
   theme_minimal(base_size = 14)+
   labs(x = "turnover in region (%)",
-       y = "visits in region (#)")
+       y = "strength (sum of edge weights)")
 
 ggplot(region_dataset, aes(x = embassies_in_region, y = strength))+
   #geom_smooth(method = "lm", alpha = 0.2)+
@@ -240,7 +280,7 @@ ggplot(region_dataset, aes(x = embassies_in_region, y = strength))+
   geom_text_repel(aes(label = iso3_eu))+
   theme_minimal(base_size = 14)+
   labs(x = "embassies in region (#)",
-       y = "visits in region (#)")
+       y = "strength (sum of edge weights)")
 
 ggplot(region_dataset, aes(x = fta_in_region, y = strength))+
   #geom_smooth(method = "lm", alpha = 0.2)+
@@ -248,7 +288,15 @@ ggplot(region_dataset, aes(x = fta_in_region, y = strength))+
   geom_text_repel(aes(label = iso3_eu))+
   theme_minimal(base_size = 14)+
   labs(x = "fta in region (#)",
-       y = "visits in region (#)")
+       y = "strength (sum of edge weights)")
+
+ggplot(region_dataset, aes(x = remittances_in_region, y = strength))+
+  #geom_smooth(method = "lm", alpha = 0.2)+
+  geom_point()+
+  geom_text_repel(aes(label = iso3_eu))+
+  theme_minimal(base_size = 14)+
+  labs(x = "remittances in region (%)",
+       y = "strength (sum of edge weights)")
 ```
 
 ## Plots für eigenvector centrality
@@ -276,6 +324,14 @@ ggplot(region_dataset, aes(x = fta_in_region, y = eigenvector_centr))+
   geom_text_repel(aes(label = iso3_eu))+
   theme_minimal(base_size = 14)+
   labs(x = "fta in region (#)",
+       y = "eigenvector centrality")
+
+ggplot(region_dataset, aes(x = remittances_in_region, y = eigenvector_centr))+
+  #geom_smooth(method = "lm", alpha = 0.2)+
+  geom_point()+
+  geom_text_repel(aes(label = iso3_eu))+
+  theme_minimal(base_size = 14)+
+  labs(x = "remittances in region (%)",
        y = "eigenvector centrality")
 ```
 

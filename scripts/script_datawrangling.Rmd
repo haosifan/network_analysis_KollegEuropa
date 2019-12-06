@@ -42,15 +42,14 @@ In diesem Fall muss das Netzwerk aus einer edge list einglesen werden. Das ist g
 
 
 ```{r}
-rd_raw <- openxlsx::read.xlsx("../data/19_Datensammlung_Reisediplomatie Projekt_Gesamt_10-20.xlsx", 
+rd_raw <- openxlsx::read.xlsx("../data/19_Finaler_Datensatz_Bilateral_12-03.xlsx", 
                               sheet = 2, na.strings = ".", detectDates = TRUE, skipEmptyCols = TRUE) %>% 
   as_tibble() %>% 
   janitor::clean_names()
   
 
 rd_clean <- rd_raw %>% 
-  rename(OffPos_Gast = offizielle_position_des_besuchers_1_regierungschef_in_2_aussenminister_in,
-         OffPos_Host = offizielle_position_des_der_gesprachspartners_in_im_gastland_1_regierungschef_in_2_aussenminister_in_3_sonstiger_politischer_akteur,
+  rename(OffPos_Host = offizielle_position_des_der_gesprachspartners_in_im_gastland_1_regierungschef_in_2_aussenminister_in_3_sonstiger_politischer_akteur,
          gastland = gastland_gesprachspartner_bei_multilateralen_treffen) %>% 
   filter(!is.na(gastland)) %>% 
   mutate(gastland = case_when(gastland == "Isreal" ~ "Israel",
@@ -68,11 +67,7 @@ rd_clean <- rd_raw %>%
                               gastland == "Venesuela" ~ "Venezuela",
                               TRUE ~ gastland)
          ) %>% 
-  mutate(GuestHost_rltnshp = case_when(OffPos_Gast == 1 & OffPos_Host == 1 ~ 1,
-                                       OffPos_Gast == 2 & OffPos_Host == 2 ~ 2,
-                                       xor(OffPos_Gast == 1, OffPos_Host == 1) ~ 3,
-                                       TRUE ~ 4),
-         iso3_eu = countrycode(eu_land, "country.name.de", "iso3c"),
+  mutate(iso3_eu = countrycode(eu_land, "country.name.de", "iso3c"),
          iso3_host = countrycode(gastland, "country.name.de", "iso3c")) %>% 
   mutate(iso3_host = case_when(gastland == "Kosovo" ~ "KSV",
                                TRUE ~ iso3_host),
@@ -125,8 +120,8 @@ Bisher hinzugefügt:
 
 
 ```{r}
-E(rd_igraph)$GastPos <- rd_pregraph$OffPos_Gast
-E(rd_igraph)$GastHost <- rd_pregraph$GuestHost_rltnshp
+#E(rd_igraph)$GastPos <- rd_pregraph$OffPos_Gast
+#E(rd_igraph)$GastHost <- rd_pregraph$GuestHost_rltnshp
 E(rd_igraph)$year <- year(rd_pregraph$ankunftsdatum)
 E(rd_igraph)$multilateral <- rd_pregraph$multilaterales_treffen_1_ja_2_nein
 
