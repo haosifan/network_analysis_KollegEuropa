@@ -1,7 +1,7 @@
 ---
-title: "Workshop 19_11_07"
+title: "Final Analysis for Brussels"
 author: "Stefan Haußner"
-date: "06 December 2019"
+date: "13 February 2020"
 output: html_document
 ---
 
@@ -133,7 +133,6 @@ remit_prepared <- remit_raw %>%
 ```
 
 
-
 # Preparing supplementary data for merging with network-graph
 
 Einige der Zeilen sind nicht "eindeutig", da es z.B. zwei Beobachtungen für DNK und RUS (Russische Föderation und Sowjetunion) gibt. Filtern durch eine Flag für "unique" UND-Wert über 0 ODER EQUAL.
@@ -178,8 +177,8 @@ Dazu müssen eben alle ISO3-Codes der jeweiligen Länder in einer Region (oder v
 ```{r}
 
 #countries_of_interest <- c("BLZ", "CRI","SLV","GTM","HND","MEX","NIC","PAN")
-countries_of_interest <- c("CHN", "HKG","JPN","PRK","KOR","MAC","MNG","KSV")
-#countries_of_interest <- c("PRY","ABW","VEN","BRA","URY","BOL","COL","ARG","CHL","ECU","CRI","DOM","PER","CUB","MEX","PAN")
+#countries_of_interest <- c("CHN", "HKG","JPN","PRK","KOR","MAC","MNG","KSV")
+countries_of_interest <- c("PRY","ABW","VEN","BRA","URY","BOL","COL","ARG","CHL","ECU","CRI","DOM","PER","CUB","MEX","PAN")
 
 
 rd_region <- rd_ready %>% 
@@ -237,6 +236,14 @@ addvars_in_region <- addvars_network_data %>%
 ```
 
 ```{r}
+region_visits <- rd_ready %>%
+  filter(iso3_host %in% countries_of_interest) %>% 
+  count(iso3_eu) %>% 
+  rename(visits_in_region = n)
+```
+
+
+```{r}
 region_eigen <- eigen_centrality(rd_projection_eu, weights = E(rd_projection_eu)$weight)$vector %>% 
   data.frame() %>% 
   rownames_to_column(var = "iso3_eu") %>% 
@@ -254,10 +261,11 @@ Verknüpfung über left_join aller Daten
 
 ```{r}
 region_dataset <- left_join(region_eigen, region_strength, by = "iso3_eu") %>% 
-  left_join(., addvars_in_region, by = "iso3_eu")
+  left_join(., addvars_in_region, by = "iso3_eu") %>% 
+  left_join(., region_visits, by = "iso3_eu")
 
 region_dataset_long <- region_dataset %>% 
-  gather(c(turnover_in_region, fta_in_region, embassies_in_region, remittances_in_region), key = "indvar", value = "value")
+  gather(c(turnover_in_region, fta_in_region, embassies_in_region, remittances_in_region, visits_in_region), key = "indvar", value = "value")
 
 ```
 
@@ -335,4 +343,57 @@ ggplot(region_dataset, aes(x = remittances_in_region, y = eigenvector_centr))+
        y = "eigenvector centrality")
 ```
 
+## Plots für visits
+
+```{r}
+ggplot(region_dataset, aes(x = turnover_in_region, y = visits_in_region))+
+  #geom_smooth(method = "lm", alpha = 0.2)+
+  geom_point()+
+  geom_text_repel(aes(label = iso3_eu))+
+  theme_minimal(base_size = 14)+
+  labs(x = "turnover in region (%)",
+       y = "visits in region")
+
+ggplot(region_dataset, aes(x = embassies_in_region, y = visits_in_region))+
+  #geom_smooth(method = "lm", alpha = 0.2)+
+  geom_point()+
+  geom_text_repel(aes(label = iso3_eu))+
+  theme_minimal(base_size = 14)+
+  labs(x = "embassies in region (#)",
+       y = "visits in region")
+
+ggplot(region_dataset, aes(x = fta_in_region, y = visits_in_region))+
+  #geom_smooth(method = "lm", alpha = 0.2)+
+  geom_point()+
+  geom_text_repel(aes(label = iso3_eu))+
+  theme_minimal(base_size = 14)+
+  labs(x = "fta in region (#)",
+       y = "visits in region")
+
+ggplot(region_dataset, aes(x = remittances_in_region, y = visits_in_region))+
+  #geom_smooth(method = "lm", alpha = 0.2)+
+  geom_point()+
+  geom_text_repel(aes(label = iso3_eu))+
+  theme_minimal(base_size = 14)+
+  labs(x = "remittances in region (%)",
+       y = "visits in region")
+```
+
+# Barplots for visits in region
+
+
+
+```{r}
+
+rd_ready %>% distinct(iso3_eu) %>% 
+  left_join(.,region_visits, by = "iso3_eu") %>% 
+  mutate(visits_in_region = replace_na(visits_in_region, 0),
+         iso3_eu = fct_reorder(iso3_eu, visits_in_region)) %>% 
+  ggplot()+
+  geom_col(aes(x = iso3_eu, y = visits_in_region))+
+  labs(x = "", y = "# of visits in region")+
+  coord_flip()+
+  theme_minimal()
+
+```
 
