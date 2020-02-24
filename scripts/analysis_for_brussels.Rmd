@@ -162,6 +162,7 @@ addvars_network_data <- left_join(rd_ready, turnover_prepared_2, by = c("iso3_eu
   left_join(., fta_embassy_prepared, by = c("iso3_eu","iso3_host")) %>% 
   left_join(., remit_prepared, by = c("iso3_eu","iso3_host"))
 
+#save(rd_ready, addvars_network_data, file = "../data/data_addvars_network.Rdata")
 ```
 
 
@@ -177,7 +178,7 @@ Dazu müssen eben alle ISO3-Codes der jeweiligen Länder in einer Region (oder v
 ```{r}
 
 #countries_of_interest <- c("BLZ", "CRI","SLV","GTM","HND","MEX","NIC","PAN")
-#countries_of_interest <- c("CHN", "HKG","JPN","PRK","KOR","MAC","MNG","KSV")
+#countries_of_interest <- c("CHN", "HKG","JPN","PRK","KOR","MAC","MNG")
 countries_of_interest <- c("PRY","ABW","VEN","BRA","URY","BOL","COL","ARG","CHL","ECU","CRI","DOM","PER","CUB","MEX","PAN")
 
 
