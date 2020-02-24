@@ -1,0 +1,78 @@
+---
+title: "network viz principles"
+author: "Stefan Haussner"
+date: "24 Februar 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(igraph)
+library(visNetwork)
+```
+
+Zuvor einmal analysis_for_brussels.Rmd durchlaufen lassen.
+Hier noch load xxx einfügen
+
+
+# Netzwerkvisualisierung über igraph
+
+## Knoten besonders highlighten
+
+```{r}
+igraph::vertex_attr(rd_region)
+```
+
+
+### EU und nicht EU
+```{r}
+V(rd_region)$color <- case_when(V(rd_region)$type == FALSE ~ "lawngreen",
+                                V(rd_region)$type == TRUE ~ "lightblue")
+
+plot.igraph(rd_region)
+```
+
+### spezifische Knoten nach den Ländernamen highlighten
+
+```{r}
+names_to_highlight <- c("FIN","LVA","DOM") 
+
+V(rd_region)$color <- case_when(V(rd_region)$name %in% names_to_highlight ~ "lawngreen",
+                                TRUE ~ "lightblue")
+
+plot.igraph(rd_region)
+```
+
+### spezifische Knoten nach irgendwelchen SNA-Statistiken highlighten:
+
+```{r}
+
+V(rd_region)$sna_stat <- degree(rd_region)
+
+V(rd_region)$color <- case_when(V(rd_region)$sna_stat > 5 ~ "lawngreen",
+                                TRUE ~ "lightblue")
+plot.igraph(rd_region)
+
+```
+
+
+# Netzwerkvisualisierung mit visNetwork
+
+```{r}
+vn <- toVisNetworkData(rd_region)
+
+nodes <- vn$nodes %>% 
+  mutate(color.background = case_when(type == FALSE ~ "lawngreen",
+                                      type == TRUE ~ "lightblue")) %>% 
+  data.frame()
+
+edges <- data.frame(vn$edges)
+
+visNetwork(nodes, edges)
+```
+
+
