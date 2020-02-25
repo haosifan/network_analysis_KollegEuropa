@@ -60,6 +60,8 @@ plot.igraph(rd_region)
 ```
 
 
+
+
 # Netzwerkvisualisierung mit visNetwork
 
 ```{r}

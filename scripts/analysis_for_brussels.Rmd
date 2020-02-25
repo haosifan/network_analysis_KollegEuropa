@@ -26,6 +26,7 @@ library(ggthemes)
 
 ```{r}
 load("../data/data_preprocessed.Rdata")
+
 ```
 
 

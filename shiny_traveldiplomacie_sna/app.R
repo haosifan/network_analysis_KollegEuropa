@@ -7,6 +7,8 @@
 #    http://shiny.rstudio.com/
 #
 
+sliderInput()
+
 library(shiny)
 library(tidyverse)
 
@@ -15,24 +17,36 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       selectInput("region", "Select a region you want to inspect", 
-                  choices = c("Eastern and South-Eastern Asia","Latin America and the Caribbean"))
+                  choices = c("Northern America","Southern Asia"))
     ),
     mainPanel(
      textOutput(outputId = "selected"),
-     textOutput(outputId = "x")
+     tableOutput(outputId = "x"),
+     plotOutput(outputId = "plot")
     )
   )
 )
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-  load("../data/data_addvars_network.Rdata")
-
-  output$selected <- renderPrint({input$region})
+  un_regions <- read_csv("data/un_regions.csv")
+  load("data/shiny_data.Rdata")
   
-  x <- reactive({input$region == "Eastern and South-Eastern Asia"})
+  coi <- reactive({
+    un_regions %>% 
+      filter(sub_region == input$region) %>% 
+      filter(alpha_3 %in% V(rd_igraph)$name) %>% 
+      pull(alpha_3)
+      })
   
-  output$x <- renderPrint({x})
+  rd_region <- reactive({
+    induced.subgraph(graph=rd_igraph,vids=unlist(neighborhood(graph=rd_igraph,order=1,nodes=coi())))
+  })
+  
+  output$selected <- renderText({input$region})
+  output$x <- renderText({coi()})
+  output$plot <- renderPlot({plot.igraph(rd_region())})
+  
 }
 
 # Run the application 
