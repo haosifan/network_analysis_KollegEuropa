@@ -11,6 +11,7 @@ sliderInput()
 
 library(shiny)
 library(tidyverse)
+library(igraph)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -18,6 +19,7 @@ ui <- fluidPage(
     sidebarPanel(
       selectInput("region", "Select a region you want to inspect", 
                   choices = c("Northern America","Southern Asia"))
+      # daterange Input
     ),
     mainPanel(
      textOutput(outputId = "selected"),
@@ -40,8 +42,11 @@ server <- function(input, output) {
       })
   
   rd_region <- reactive({
-    induced.subgraph(graph=rd_igraph,vids=unlist(neighborhood(graph=rd_igraph,order=1,nodes=coi())))
+    induced.subgraph(graph=rd_igraph,vids=unlist(neighborhood(graph=rd_igraph,order=1,nodes=coi()))) %>% 
+      subgraph.edges(graph = ., eids = which(E(.)$year == 2019))
   })
+  
+  
   
   output$selected <- renderText({input$region})
   output$x <- renderText({coi()})
