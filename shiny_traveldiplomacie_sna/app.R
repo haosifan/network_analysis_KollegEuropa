@@ -7,24 +7,25 @@
 #    http://shiny.rstudio.com/
 #
 
-sliderInput()
-
 library(shiny)
 library(tidyverse)
 library(igraph)
+library(visNetwork)
+library(countrycode)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       selectInput("region", "Select a region you want to inspect", 
-                  choices = c("Northern America","Southern Asia"))
+                  choices = unique(kolleg_regions$region_en)),
+      sliderInput("year", "Choose a year", min = 2017, max = 2019, value = 2017)
       # daterange Input
     ),
     mainPanel(
      textOutput(outputId = "selected"),
      tableOutput(outputId = "x"),
-     plotOutput(outputId = "plot")
+     visNetworkOutput(outputId = "networkplot")
     )
   )
 )
@@ -33,24 +34,37 @@ ui <- fluidPage(
 server <- function(input, output) {
   un_regions <- read_csv("data/un_regions.csv")
   load("data/shiny_data.Rdata")
+  kolleg_regions <- read_csv2("data/regions_iso3.csv") %>% 
+    mutate(cntry_name = countrycode(cntry_iso, origin = "iso3c", destination = "country.name"),
+           cntry_name = case_when(cntry_iso == "KSV" ~ "Kosovo",
+                                  TRUE ~ cntry_name))
   
   coi <- reactive({
-    un_regions %>% 
-      filter(sub_region == input$region) %>% 
-      filter(alpha_3 %in% V(rd_igraph)$name) %>% 
-      pull(alpha_3)
+    kolleg_regions %>% 
+      filter(region_en == input$region) %>% 
+      filter(cntry_iso %in% V(rd_igraph)$name) %>% 
+      pull(cntry_iso)
       })
   
   rd_region <- reactive({
     induced.subgraph(graph=rd_igraph,vids=unlist(neighborhood(graph=rd_igraph,order=1,nodes=coi()))) %>% 
-      subgraph.edges(graph = ., eids = which(E(.)$year == 2019))
+      subgraph.edges(graph = ., eids = which(E(.)$year == input$year))
   })
   
-  
+  vn <- reactive({
+    vnd <- toVisNetworkData(rd_region())
+    nodes <- vnd$nodes %>% 
+      mutate(color.background = case_when(type == FALSE ~ "lawngreen",
+                                          type == TRUE ~ "lightblue")) %>% 
+      data.frame()
+    
+    edges <- data.frame(vnd$edges)
+    visNetwork(nodes, edges)
+    })
   
   output$selected <- renderText({input$region})
   output$x <- renderText({coi()})
-  output$plot <- renderPlot({plot.igraph(rd_region())})
+  output$networkplot <- visNetwork::renderVisNetwork({vn()})
   
 }
 
