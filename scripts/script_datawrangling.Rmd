@@ -122,7 +122,7 @@ Bisher hinzugefügt:
 ```{r}
 #E(rd_igraph)$GastPos <- rd_pregraph$OffPos_Gast
 #E(rd_igraph)$GastHost <- rd_pregraph$GuestHost_rltnshp
-E(rd_igraph)$year <- year(rd_pregraph$ankunftsdatum)
+E(rd_igraph)$date <- as.character(rd_pregraph$ankunftsdatum)
 E(rd_igraph)$multilateral <- rd_pregraph$multilaterales_treffen_1_ja_2_nein
 
 include_edges <- which(E(rd_igraph)$multilateral == 2)

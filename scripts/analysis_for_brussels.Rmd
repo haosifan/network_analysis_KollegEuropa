@@ -271,6 +271,14 @@ region_dataset_long <- region_dataset %>%
 
 ```
 
+# SAVES
+
+```{r}
+#save(rd_igraph, addvars_network_data, rd_ready, file = "../data/shiny_data.Rdata")
+```
+
+
+
 # Analysis
 
 ## Plots für strength

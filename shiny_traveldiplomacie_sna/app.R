@@ -13,13 +13,22 @@ library(igraph)
 library(visNetwork)
 library(countrycode)
 
+un_regions <- read_csv("data/un_regions.csv")
+load("data/shiny_data.Rdata")
+kolleg_regions <- read_csv2("data/regions_iso3.csv") %>% 
+  mutate(cntry_name = countrycode(cntry_iso, origin = "iso3c", destination = "country.name"),
+         cntry_name = case_when(cntry_iso == "KSV" ~ "Kosovo",
+                                TRUE ~ cntry_name))
+
 # Define UI for application that draws a histogram
 ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
-      selectInput("region", "Select a region you want to inspect", 
+      selectInput("region", "Select a region you want to inspect:", 
                   choices = unique(kolleg_regions$region_en)),
-      sliderInput("year", "Choose a year", min = 2017, max = 2019, value = 2017)
+      #sliderInput("year", "Choose a year", min = 2017, max = 2019, value = 2017),
+      dateRangeInput("daterange", label = "Choose a date range:", 
+                     start = min(ymd(E(rd_igraph)$date), na.rm = TRUE), end = max(ymd(E(rd_igraph)$date), na.rm = TRUE))
       # daterange Input
     ),
     mainPanel(
@@ -32,12 +41,6 @@ ui <- fluidPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-  un_regions <- read_csv("data/un_regions.csv")
-  load("data/shiny_data.Rdata")
-  kolleg_regions <- read_csv2("data/regions_iso3.csv") %>% 
-    mutate(cntry_name = countrycode(cntry_iso, origin = "iso3c", destination = "country.name"),
-           cntry_name = case_when(cntry_iso == "KSV" ~ "Kosovo",
-                                  TRUE ~ cntry_name))
   
   coi <- reactive({
     kolleg_regions %>% 
@@ -47,8 +50,8 @@ server <- function(input, output) {
       })
   
   rd_region <- reactive({
-    induced.subgraph(graph=rd_igraph,vids=unlist(neighborhood(graph=rd_igraph,order=1,nodes=coi()))) %>% 
-      subgraph.edges(graph = ., eids = which(E(.)$year == input$year))
+    induced.subgraph(graph=rd_igraph,vids=unlist(neighborhood(graph=rd_igraph,order=1,nodes=coi()))) #%>% 
+      #subgraph.edges(graph = ., eids = which(E(.)$year == input$year))
   })
   
   vn <- reactive({
