@@ -8,10 +8,13 @@
 #
 
 library(shiny)
+library(DT)
 library(tidyverse)
 library(igraph)
 library(visNetwork)
 library(countrycode)
+library(lubridate)
+
 
 un_regions <- read_csv("data/un_regions.csv")
 load("data/shiny_data.Rdata")
@@ -20,21 +23,23 @@ kolleg_regions <- read_csv2("data/regions_iso3.csv") %>%
          cntry_name = case_when(cntry_iso == "KSV" ~ "Kosovo",
                                 TRUE ~ cntry_name))
 
+projection_eu <- igraph::bipartite_projection(rd_igraph, which = "true")
+
 # Define UI for application that draws a histogram
 ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       selectInput("region", "Select a region you want to inspect:", 
                   choices = unique(kolleg_regions$region_en)),
-      #sliderInput("year", "Choose a year", min = 2017, max = 2019, value = 2017),
       dateRangeInput("daterange", label = "Choose a date range:", 
-                     start = min(ymd(E(rd_igraph)$date), na.rm = TRUE), end = max(ymd(E(rd_igraph)$date), na.rm = TRUE))
+                     start = min(ymd(E(rd_igraph)$date), na.rm = TRUE), end = max(ymd(E(rd_igraph)$date), na.rm = TRUE)),
+      radioButtons("type", "Select which projection is used for SNA-statistics:", 
+                   choiceNames = c("EU Projection","Host Country Projection"), choiceValues = c("true","false"))
     ),
     mainPanel(
      textOutput(outputId = "selected"),
      tableOutput(outputId = "x"),
-     visNetworkOutput(outputId = "networkplot"),
-     visNetworkOutput(outputId = "proj_eu")
+     visNetworkOutput(outputId = "networkplot")
     )
   )
 )
@@ -55,8 +60,6 @@ server <- function(input, output) {
       subgraph.edges(graph = ., eids = which(E(.)$date >= input$daterange[1] & E(.)$date <= input$daterange[2]))
   })
   
-  #rd_eu <- igraph::bipartite_projection(rd_region(), which = "true")
-  
   vn <- reactive({
     vnd <- toVisNetworkData(rd_region())
     nodes <- vnd$nodes %>% 
@@ -68,15 +71,26 @@ server <- function(input, output) {
     visNetwork(nodes, edges)
     })
   
- # vn_eu <- reactive({
- #   vnd_eu <- toVisNetworkData(rd_eu())
- #  visNetwork(data.frame(vnd_eu$nodes), data.frame(vnd_eu$edges))
- # })
+  
+  projection_stats <- reactive({
+    
+    region_strength <- strength(projection_eu) %>% 
+      data.frame() %>% 
+      rownames_to_column(var = "iso3") %>% 
+      rename(strength = ".")
+    
+    region_eigen <- eigen_centrality(projection_eu, weights = E(projection_eu)$weight)$vector %>% 
+      data.frame() %>% 
+      rownames_to_column(var = "iso3") %>% 
+      rename(eigenvector_centr = ".")
+    
+    left_join(region_strength, region_eigen, by = "iso3") %>% DT::datatable()
+  })
+  
   
   output$selected <- renderText({input$region})
   output$x <- renderText({coi()})
   output$networkplot <- visNetwork::renderVisNetwork({vn()})
-  #output$proj_eu <- visNetwork::renderVisNetwork({vn_eu()})
 }
 
 # Run the application 
