@@ -33,7 +33,8 @@ ui <- fluidPage(
     mainPanel(
      textOutput(outputId = "selected"),
      tableOutput(outputId = "x"),
-     visNetworkOutput(outputId = "networkplot")
+     visNetworkOutput(outputId = "networkplot"),
+     visNetworkOutput(outputId = "proj_eu")
     )
   )
 )
@@ -54,6 +55,8 @@ server <- function(input, output) {
       subgraph.edges(graph = ., eids = which(E(.)$date >= input$daterange[1] & E(.)$date <= input$daterange[2]))
   })
   
+  #rd_eu <- igraph::bipartite_projection(rd_region(), which = "true")
+  
   vn <- reactive({
     vnd <- toVisNetworkData(rd_region())
     nodes <- vnd$nodes %>% 
@@ -65,10 +68,15 @@ server <- function(input, output) {
     visNetwork(nodes, edges)
     })
   
+ # vn_eu <- reactive({
+ #   vnd_eu <- toVisNetworkData(rd_eu())
+ #  visNetwork(data.frame(vnd_eu$nodes), data.frame(vnd_eu$edges))
+ # })
+  
   output$selected <- renderText({input$region})
   output$x <- renderText({coi()})
   output$networkplot <- visNetwork::renderVisNetwork({vn()})
-  
+  #output$proj_eu <- visNetwork::renderVisNetwork({vn_eu()})
 }
 
 # Run the application 
