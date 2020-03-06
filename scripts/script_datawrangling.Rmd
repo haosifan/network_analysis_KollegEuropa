@@ -134,6 +134,7 @@ rd_igraph <- subgraph.edges(rd_igraph, eids = include_edges)
 # Speichern des Workspace von produzierten Datensätzen:
 
 ```{r}
-save(list = ls(), file = "../data/data_preprocessed.Rdata")
+#rm(eu28, include_edges)
+#save(list = ls(), file = "../data/data_preprocessed.Rdata")
 ```
 

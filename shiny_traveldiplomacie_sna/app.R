@@ -29,7 +29,6 @@ ui <- fluidPage(
       #sliderInput("year", "Choose a year", min = 2017, max = 2019, value = 2017),
       dateRangeInput("daterange", label = "Choose a date range:", 
                      start = min(ymd(E(rd_igraph)$date), na.rm = TRUE), end = max(ymd(E(rd_igraph)$date), na.rm = TRUE))
-      # daterange Input
     ),
     mainPanel(
      textOutput(outputId = "selected"),
@@ -48,10 +47,11 @@ server <- function(input, output) {
       filter(cntry_iso %in% V(rd_igraph)$name) %>% 
       pull(cntry_iso)
       })
+
   
   rd_region <- reactive({
-    induced.subgraph(graph=rd_igraph,vids=unlist(neighborhood(graph=rd_igraph,order=1,nodes=coi()))) #%>% 
-      #subgraph.edges(graph = ., eids = which(E(.)$year == input$year))
+    induced.subgraph(graph=rd_igraph,vids=unlist(neighborhood(graph=rd_igraph,order=1,nodes=coi()))) %>% 
+      subgraph.edges(graph = ., eids = which(E(.)$date >= input$daterange[1] & E(.)$date <= input$daterange[2]))
   })
   
   vn <- reactive({
