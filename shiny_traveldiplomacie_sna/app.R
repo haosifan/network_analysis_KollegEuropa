@@ -16,9 +16,9 @@ library(countrycode)
 library(lubridate)
 
 
-un_regions <- read_csv("data/un_regions.csv")
-load("data/shiny_data.Rdata")
-kolleg_regions <- read_csv2("data/regions_iso3.csv") %>% 
+un_regions <- read_csv("un_regions.csv")
+load("shiny_data.Rdata")
+kolleg_regions <- read_csv2("regions_iso3.csv") %>% 
   mutate(cntry_name = countrycode(cntry_iso, origin = "iso3c", destination = "country.name"),
          cntry_name = case_when(cntry_iso == "KSV" ~ "Kosovo",
                                 TRUE ~ cntry_name))
@@ -39,7 +39,8 @@ ui <- fluidPage(
     mainPanel(
      textOutput(outputId = "selected"),
      tableOutput(outputId = "x"),
-     visNetworkOutput(outputId = "networkplot")
+     visNetworkOutput(outputId = "networkplot"),
+     DT::DTOutput(outputId = "projectionstats")
     )
   )
 )
@@ -71,15 +72,19 @@ server <- function(input, output) {
     visNetwork(nodes, edges)
     })
   
+  active_projection <- reactive({
+    bipartite_projection(rd_region(), which = input$type)
+  })
   
   projection_stats <- reactive({
     
-    region_strength <- strength(projection_eu) %>% 
+    region_strength <- strength(active_projection()) %>% 
       data.frame() %>% 
       rownames_to_column(var = "iso3") %>% 
       rename(strength = ".")
     
-    region_eigen <- eigen_centrality(projection_eu, weights = E(projection_eu)$weight)$vector %>% 
+    region_eigen <- eigen_centrality(active_projection(), weights = E(active_projection())$weight)$vector %>% 
+      round(4) %>% 
       data.frame() %>% 
       rownames_to_column(var = "iso3") %>% 
       rename(eigenvector_centr = ".")
@@ -91,6 +96,7 @@ server <- function(input, output) {
   output$selected <- renderText({input$region})
   output$x <- renderText({coi()})
   output$networkplot <- visNetwork::renderVisNetwork({vn()})
+  output$projectionstats <- DT::renderDT({projection_stats()})
 }
 
 # Run the application 
